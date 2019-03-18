@@ -66,7 +66,7 @@ method.init = function () {
   this.advice = require('../BTC_USDT_1h_OMLBCT_backtest.json');
 }
 
-method.check = function (candle) {
+method.update = function (candle) {
   if (!this.startOpen) {
     this.startOpen = candle.open;
   }
@@ -84,7 +84,6 @@ method.check = function (candle) {
   // buy
 
   let advice = this.advice[new Date(candle.start).getTime()];
-  console.log(new Date(candle.start).getTime(), advice);
 
   if (advice == 1) {
     if (this.buy(this.amountForOneTrade, candle.close)) {
@@ -152,6 +151,8 @@ method.check = function (candle) {
   // })
 }
 
+method.check = function (candle) {}
+
 const caclDistance2Dates = (date1, date2) => {
   let i = 0;
   let diff = date2 - date1;
@@ -162,13 +163,12 @@ const caclDistance2Dates = (date1, date2) => {
 method.finished = function () {
   // Sell all Asset
   this.sell(this.asset, this.finalClose);
-  
+
   // Report
   let totalProfitPerTrade = 0;
   for (let i = 0; i < this.tradesHistory.length; i++) {
     let curTrade = this.tradesHistory[i];
     if (!curTrade.candleSell) {
-      console.log(curTrade.id);
       curTrade.candleSell = {
         start: this.finalTime,
         close: this.finalClose,
@@ -176,7 +176,7 @@ method.finished = function () {
       }
     }
 
-    log.write(`${curTrade.candleBuy.start.format('DD-MM-YYYY hh-mm-ss')} \t Hold: ${caclDistance2Dates(curTrade.candleBuy.start.unix(), curTrade.candleSell.start.unix())} \t buy: ${curTrade.candleBuy.close} \t sell: ${curTrade.candleSell.sellingPrice} \t profit: ${100* (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close)/curTrade.candleBuy.close} %`)
+    log.write(`${moment.utc(curTrade.candleBuy.start).format('DD-MM-YYYY HH:mm:ss')} \t Hold: ${caclDistance2Dates(curTrade.candleBuy.start.unix(), curTrade.candleSell.start.unix())} \t buy: ${curTrade.candleBuy.close} \t sell: ${curTrade.candleSell.sellingPrice} \t profit: ${100* (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close)/curTrade.candleBuy.close} %`)
     totalProfitPerTrade += (100 * (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close) / curTrade.candleBuy.close);
   }
   log.write(`\n`);
