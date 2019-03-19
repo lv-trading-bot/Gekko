@@ -68,18 +68,18 @@ PaperTrader.prototype.setStartBalance = function() {
 // after every succesfull trend ride we hopefully end up
 // with more BTC than we started with, this function
 // calculates Gekko's profit in %.
-PaperTrader.prototype.updatePosition = function(what) {
+PaperTrader.prototype.updatePosition = function(what, amount) {
 
   let cost;
-  let amount;
+  // let amount;
 
   // virtually trade all {currency} to {asset}
   // at the current price (minus fees)
   if(what === 'long') {
     cost = (1 - this.fee) * this.portfolio.currency;
-    this.portfolio.asset += this.extractFee(this.portfolio.currency / this.price);
-    amount = this.portfolio.asset;
-    this.portfolio.currency = 0;
+    this.portfolio.asset += this.extractFee(amount / this.price);
+    amount = amount || this.portfolio.asset;
+    this.portfolio.currency = this.portfolio.currency - amount;
 
     this.exposed = true;
     this.trades++;
@@ -89,9 +89,9 @@ PaperTrader.prototype.updatePosition = function(what) {
   // at the current price (minus fees)
   else if(what === 'short') {
     cost = (1 - this.fee) * (this.portfolio.asset * this.price);
-    this.portfolio.currency += this.extractFee(this.portfolio.asset * this.price);
-    amount = this.portfolio.currency / this.price;
-    this.portfolio.asset = 0;
+    this.portfolio.currency += this.extractFee(amount * this.price);
+    amount = amount || (this.portfolio.currency / this.price);
+    this.portfolio.asset = this.portfolio.asset - amount;
 
     this.exposed = false;
     this.trades++;
@@ -159,7 +159,7 @@ PaperTrader.prototype.processAdvice = function(advice) {
     date: advice.date,
   });
 
-  const { cost, amount, effectivePrice } = this.updatePosition(advice.recommendation);
+  const { cost, amount, effectivePrice } = this.updatePosition(advice.recommendation, advice.amount);
 
   this.relayPortfolioChange();
   this.relayPortfolioValueChange();

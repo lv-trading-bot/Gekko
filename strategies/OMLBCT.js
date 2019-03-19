@@ -7,7 +7,14 @@ const moment = require('moment');
 // let's create our own method
 var method = {};
 
-method.buy = function (amountDollar, price) {
+method.buy = function(amountDollar, price) {
+  this.advice({
+    direction: "long",// short/long
+    // trigger: { // Chưa dùng
+
+    // },
+    amount: amountDollar
+  })
   // cacl new balance and new asset
   if (this.balance >= amountDollar) {
     this.balance = this.balance - amountDollar;
@@ -20,6 +27,10 @@ method.buy = function (amountDollar, price) {
 }
 
 method.sell = function (amountAsset, price) {
+  this.advice({
+    direction: "short",// short/long,
+    amount: amountAsset
+  })
   // cacl new balance and new asset
   if (this.asset - amountAsset >= -0.000001) { // Sai số qua nhiều lần mua bán
     this.asset = this.asset - amountAsset;
@@ -63,10 +74,11 @@ method.init = function () {
 
   this.id = 0;
 
-  this.advice = require('../BTC_USDT_1h_OMLBCT_backtest.json');
 }
 
-method.check = function (candle) {
+method.check = function () {}
+
+method.update = function (candle) {
   if (!this.startOpen) {
     this.startOpen = candle.open;
   }
@@ -83,11 +95,11 @@ method.check = function (candle) {
   // }).then((result) => {
   // buy
 
-  let advice = this.advice[new Date(candle.start).getTime()];
-  console.log(new Date(candle.start).getTime(), advice);
-
+  // let advice = this.advice[new Date(candle.start).getTime()];
+  // console.log(new Date(candle.start).getTime(), advice);
+  let advice = Math.floor(Math.random()*100 % 2);
   if (advice == 1) {
-    if (this.buy(this.amountForOneTrade, candle.close)) {
+    if (this.buy(this.amountForOneTrade, candle.close, this.advice.bind(this))) {
       this.tradesManager.push({
         close: candle.close,
         asset: this.amountForOneTrade / candle.close,
@@ -126,19 +138,19 @@ method.check = function (candle) {
 
     // Profit less than stopLoss
     if (pecentProfit <= this.stopLoss) {
-      this.sell(curTrade.asset, candle.low);
+      this.sell(curTrade.asset, candle.low, this.advice.bind(this));
       finalizeTrade(candle.low)
     } else
 
       // Profit greater than takeProfit
       if (pecentProfit >= this.takeProfit) {
-        this.sell(curTrade.asset, candle.high);
+        this.sell(curTrade.asset, candle.high, this.advice.bind(this));
         finalizeTrade(candle.high)
       } else
 
         // Vượt quá giới hạn trade
         if (curTrade.wait >= this.stopTrade) {
-          this.sell(curTrade.asset, candle.close);
+          this.sell(curTrade.asset, candle.close, this.advice.bind(this));
           finalizeTrade(candle.close)
         }
   }
@@ -168,7 +180,7 @@ method.finished = function () {
   for (let i = 0; i < this.tradesHistory.length; i++) {
     let curTrade = this.tradesHistory[i];
     if (!curTrade.candleSell) {
-      console.log(curTrade.id);
+      // console.log(curTrade.id);
       curTrade.candleSell = {
         start: this.finalTime,
         close: this.finalClose,
@@ -176,7 +188,7 @@ method.finished = function () {
       }
     }
 
-    log.write(`${curTrade.candleBuy.start.format('DD-MM-YYYY hh-mm-ss')} \t Hold: ${caclDistance2Dates(curTrade.candleBuy.start.unix(), curTrade.candleSell.start.unix())} \t buy: ${curTrade.candleBuy.close} \t sell: ${curTrade.candleSell.sellingPrice} \t profit: ${100* (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close)/curTrade.candleBuy.close} %`)
+    log.write(`${curTrade.candleBuy.start.format('DD-MM-YYYY HH-mm')} \t Hold: ${caclDistance2Dates(curTrade.candleBuy.start.unix(), curTrade.candleSell.start.unix())} \t buy: ${curTrade.candleBuy.close} \t sell: ${curTrade.candleSell.sellingPrice} \t profit: ${100* (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close)/curTrade.candleBuy.close} %`)
     totalProfitPerTrade += (100 * (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close) / curTrade.candleBuy.close);
   }
   log.write(`\n`);

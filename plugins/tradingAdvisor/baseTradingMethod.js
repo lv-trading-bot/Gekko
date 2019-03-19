@@ -239,6 +239,7 @@ Base.prototype.addIndicator = function(name, type, parameters) {
 }
 
 Base.prototype.advice = function(newDirection) {
+  let amount = newDirection.amount;
   // ignore legacy soft advice
   if(!newDirection) {
     return;
@@ -251,9 +252,9 @@ Base.prototype.advice = function(newDirection) {
       return;
     }
 
-    if(newDirection.direction === this._currentDirection) {
-      return;
-    }
+    // if(newDirection.direction === this._currentDirection) {
+    //   return;
+    // }
 
     if(_.isObject(newDirection.trigger)) {
       if(newDirection.direction !== 'long') {
@@ -276,9 +277,9 @@ Base.prototype.advice = function(newDirection) {
     newDirection = newDirection.direction;
   }
 
-  if(newDirection === this._currentDirection) {
-    return;
-  }
+  // if(newDirection === this._currentDirection) {
+  //   return;
+  // }
 
   if(newDirection === 'short' && this._pendingTriggerAdvice) {
     this._pendingTriggerAdvice = null;
@@ -290,7 +291,8 @@ Base.prototype.advice = function(newDirection) {
 
   const advice = {
     id: 'advice-' + this.propogatedAdvices,
-    recommendation: newDirection
+    recommendation: newDirection,
+    amount
   };
 
   if(trigger) {
