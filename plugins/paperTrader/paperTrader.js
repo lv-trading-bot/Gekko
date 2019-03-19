@@ -40,6 +40,29 @@ const PaperTrader = function() {
   this.propogatedTriggers = 0;
 }
 
+PaperTrader.prototype.isValidAdvice = function(advice) {
+  if ( advice.recommendation === 'long') {
+    if ( advice.amount <= this.portfolio.currency ) {
+      return true;
+    } else {
+      log.warn(`Not enough money to buy. Currency: ${this.portfolio.currency}, Amount: ${advice.amount}`)
+      return false;
+    }
+  } else if ( advice.recommendation === 'short' ) {
+    if ( this.portfolio.asset >= advice.amount ) {
+      return true;
+    } else {
+      // Trường hợp sai số nhiều lần dẫn đến asset k đủ để bán
+      if( advice.amount - this.portfolio.asset >= 0) {
+        advice.amount = this.portfolio.asset;
+        return true;
+      }
+      log.warn(`Not enough asset to sell. asset: ${this.portfolio.asset}, Amount: ${advice.amount}`)
+      return false;
+    }
+  }
+}
+
 PaperTrader.prototype.relayPortfolioChange = function() {
   this.deferredEmit('portfolioChange', {
     asset: this.portfolio.asset,
@@ -111,6 +134,7 @@ PaperTrader.prototype.now = function() {
 }
 
 PaperTrader.prototype.processAdvice = function(advice) {
+  if( !this.isValidAdvice(advice) ) return;
   let action;
   if(advice.recommendation === 'short') {
     action = 'sell';

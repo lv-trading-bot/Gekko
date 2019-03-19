@@ -21,7 +21,7 @@ method.buy = function(amountDollar, price) {
     this.asset = this.asset + amountDollar / price;
     return true;
   } else {
-    log.info(`Not enough money to buy, balance = ${this.balance}, amount dollar = ${amountDollar}`);
+    // log.info(`Not enough money to buy, balance = ${this.balance}, amount dollar = ${amountDollar}`);
     return false;
   }
 }
@@ -37,7 +37,7 @@ method.sell = function (amountAsset, price) {
     this.balance = this.balance + amountAsset * price;
     return true;
   } else {
-    log.info(`Not enough asset to sell, asset = ${this.asset}, amount asset = ${amountAsset}`);
+    // log.info(`Not enough asset to sell, asset = ${this.asset}, amount asset = ${amountAsset}`);
     return false;
   }
 }
@@ -73,10 +73,8 @@ method.init = function () {
   this.tradesManager = [];
 
   this.id = 0;
-
+  this.advices = require("../BTC_USDT_1h_OMLBCT_backtest.json")
 }
-
-method.check = function () {}
 
 method.update = function (candle) {
   if (!this.startOpen) {
@@ -95,9 +93,8 @@ method.update = function (candle) {
   // }).then((result) => {
   // buy
 
-  // let advice = this.advice[new Date(candle.start).getTime()];
-  // console.log(new Date(candle.start).getTime(), advice);
-  let advice = Math.floor(Math.random()*100 % 2);
+  let advice = this.advices[new Date(candle.start).getTime()];
+
   if (advice == 1) {
     if (this.buy(this.amountForOneTrade, candle.close, this.advice.bind(this))) {
       this.tradesManager.push({
@@ -164,6 +161,8 @@ method.update = function (candle) {
   // })
 }
 
+method.check = function (candle) {}
+
 const caclDistance2Dates = (date1, date2) => {
   let i = 0;
   let diff = date2 - date1;
@@ -174,13 +173,12 @@ const caclDistance2Dates = (date1, date2) => {
 method.finished = function () {
   // Sell all Asset
   this.sell(this.asset, this.finalClose);
-  
+
   // Report
   let totalProfitPerTrade = 0;
   for (let i = 0; i < this.tradesHistory.length; i++) {
     let curTrade = this.tradesHistory[i];
     if (!curTrade.candleSell) {
-      // console.log(curTrade.id);
       curTrade.candleSell = {
         start: this.finalTime,
         close: this.finalClose,
@@ -188,7 +186,7 @@ method.finished = function () {
       }
     }
 
-    log.write(`${curTrade.candleBuy.start.format('DD-MM-YYYY HH-mm')} \t Hold: ${caclDistance2Dates(curTrade.candleBuy.start.unix(), curTrade.candleSell.start.unix())} \t buy: ${curTrade.candleBuy.close} \t sell: ${curTrade.candleSell.sellingPrice} \t profit: ${100* (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close)/curTrade.candleBuy.close} %`)
+    log.write(`${moment.utc(curTrade.candleBuy.start).format('DD-MM-YYYY HH:mm')} \t Hold: ${caclDistance2Dates(curTrade.candleBuy.start.unix(), curTrade.candleSell.start.unix())} \t buy: ${curTrade.candleBuy.close} \t sell: ${curTrade.candleSell.sellingPrice} \t profit: ${100* (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close)/curTrade.candleBuy.close} %`)
     totalProfitPerTrade += (100 * (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close) / curTrade.candleBuy.close);
   }
   log.write(`\n`);
