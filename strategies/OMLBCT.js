@@ -73,7 +73,7 @@ method.init = function () {
   this.tradesManager = [];
 
   this.id = 0;
-  this.advices = require("../BTC_USDT_1h_OMLBCT_backtest.json")
+  this.advices = require("../" + this.settings.dataFile);
 }
 
 method.update = function (candle) {

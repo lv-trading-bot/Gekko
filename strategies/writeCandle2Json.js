@@ -37,7 +37,7 @@ method.update = function (candle) {
 method.finished = function () {
   const calculateTrendByPercentage = function (price, futurePrice) {
     if (price <= 0) return 0;
-    return (futurePrice - price) / Math.abs(price);
+    return (futurePrice - price) *100 / Math.abs(price);
   };
 
   //classify candle action
@@ -45,14 +45,14 @@ method.finished = function () {
     BUY = 1;
   for (let i = 0; i < this.candles.length; i++) {
     this.candles[i].start = new Date(this.candles[i].start).getTime();
-    if (i >= this.candles.length - this.settings.horizon) // last h candles will be ignored
+    if (i >= this.candles.length - this.settings.stopTrade) // last h candles will be ignored
       this.candles[i].action = STAY;
     else {
       let profitLimitFlag = 0,
         stopLimitFlag = 0;
 
       // see if within h candles, will profit limit be triggered?
-      for (let j = i + 1; j <= i + this.settings.horizon; j++) {
+      for (let j = i + 1; j <= i + this.settings.stopTrade; j++) {
         let upTrend = calculateTrendByPercentage(
           this.candles[i].close,
           this.candles[j].high
@@ -62,10 +62,10 @@ method.finished = function () {
           this.candles[j].low
         );
 
-        if (downTrend <= -this.settings.stopLimit) {
+        if (downTrend <= this.settings.stopLoss) {
           stopLimitFlag = 1;
           break;
-        } else if (upTrend >= this.settings.profitLimit) {
+        } else if (upTrend >= this.settings.takeProfit) {
           profitLimitFlag = 1;
           break;
         } else continue;

@@ -11,15 +11,15 @@ const marketsAndPair = [{
 }]
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
-const candleSizes = [60] // Đơn vị phút
+const candleSizes = [30, 60] // Đơn vị phút
 const dateRanges = [{
 		trainDaterange: {
-			from: "2019-01-01 01:00:00",
-			to: "2019-01-31 23:00:00"
+			from: "2018-02-11 21:00:00",
+			to: "2018-03-31 00:00:00"
 		},
 		backtestDaterange: {
-			from: "2019-02-01 01:00:00",
-			to: "2019-02-10 23:00:00"
+			from: "2018-04-15 01:00:00",
+			to: "2018-05-01 01:00:00"
 		}
 	},
 	// {
@@ -39,25 +39,29 @@ const strategyForBacktest = [{
 	settings: {
 		startBalance: 2500,
 		startAsset: 0,
-		stopLoss: -2,
-		takeProfit: 4,
+		stopLoss: -10,
+		takeProfit: 2,
 		amountForOneTrade: 100,
 		stopTrade: 24,
-		backtest: true
+		backtest: true,
+		dataFile: "data-for-backtest/backtest-data.json"
 	}
 }];
 
-const modelName = "random-forest";
+const modelName = "random_forest";
 const strategyGetData = {
 	name: "writeCandle2Json",
 	settings: {
-		fileName: ""
+		fileName: "",
+		stopTrade: 24,
+		stopLoss: -10,
+		takeProfit: 2
 	}
 };
 const nameConfig = "backtest-config.js";
 const nameSampleConfig = "sample-config-for-backtest.js";
 
-const api = "http://localhost:5000/backtest";
+const api = "http://192.168.43.167:5000/backtest";
 
 const main = async () => {
 	let sampleConfig = require('./' + nameSampleConfig);
@@ -71,31 +75,46 @@ const main = async () => {
 					// Chuẩn bị config để lấy data
 					let config = _.cloneDeep(sampleConfig);
 
+					console.log("Generate config...");
 					generateConfig(config, marketsAndPair[k], candleSizes[i], strategyGetData);
 
+					console.log("Generate config for prepare train data...");
 					let trainDataName = generateConfigTrain(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].trainDaterange);
 					// Ghi file config train
+					console.log("Write config for prepare train data...");
 					fs.writeFileSync(nameConfig, await generateConfigString(config));
 
 					// Chạy backtest để chuẩn bị train data
+					console.log("Run gekko for prepare train data...");
 					await runGekkoProcess(nameConfig);
 
+					console.log("Generate config for prepare test data...");
 					let testDataName = generateConfigTest(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].backtestDaterange);
 					// Ghi file config backtest
+					console.log("Write config for prepare test data...");
 					fs.writeFileSync(nameConfig, await generateConfigString(config));
 
 					// Chạy backtest để chuẩn bị backtest data
+					console.log("Run gekko for prepare test data...");
 					await runGekkoProcess(nameConfig);
 
 					// Gửi train data và test data cho python
 					let trainData = require('./' + trainDataName);
 					let testData = require('./' + testDataName);
+					console.log("Connect python ...");
 					let result = await sendTrainAndTestDataToPythonServer(trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName);
+					console.log('Connect python done ...')
 					if(result) {
 						let backtestData = result;
 						// Write backtest data
-						fs.writeFileSync('backtest-data.json', backtestData);
-						generateConfigBacktest(config, dateRanges[j].backtestDaterange, strategyForBacktest);
+						console.log("Write backtest data for backtest ...");
+						fs.writeFileSync(strategyForBacktest[l].settings.dataFile, JSON.stringify(backtestData));
+						console.log("Generate config for backtest ...");
+						generateConfigBacktest(config, dateRanges[j].backtestDaterange, strategyForBacktest[l]);
+						// Ghi file config để backtest
+						console.log("Write config for backtest ...");
+						fs.writeFileSync(nameConfig, await generateConfigString(config));
+						console.log("Run gekko for backtest test data...");
 						await runGekkoProcess(nameConfig)
 					}
 				}
@@ -108,6 +127,15 @@ const main = async () => {
 
 const sendTrainAndTestDataToPythonServer = (trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName) => {
 	return new Promise((resolve, reject) => {
+		// remove vwp from train data
+		trainData = _.map(trainData, temp => {
+			return _.omit(temp, ['vwp']);
+		})
+		// remove action & vwp from test data
+		testData = _.map(testData, temp => {
+			return _.omit(temp, ['action', 'vwp'])
+		})
+		
 		let data = {
 			metadata: {
 				train_daterange: {
@@ -126,12 +154,11 @@ const sendTrainAndTestDataToPythonServer = (trainData, testData, trainDaterange,
 		}
 		axios.post(api, data)
 		  .then(function (response) {
-
 			//handle
-			console.log(response);
-
+			resolve(response.data);
 		  })
 		  .catch(function (error) {
+			  console.log(error + "");
 			resolve(false);
 		  });
 	})
@@ -197,7 +224,8 @@ const generateConfigBacktest = (config, backtestDaterange, strategy) => {
 	config["backtest"].daterange = backtestDaterange;
 	config["tradingAdvisor"].method = strategy.name;
 	config[strategy.name] = strategy.settings;
-	config["myBacktestResultExporter"].enable = true;
+	config["myBacktestResultExporter"].enabled = true;
+	config[""]
 }
 
 const generateConfigString = (config) => {
@@ -216,11 +244,11 @@ const runGekkoProcess = (nameConfig) => {
 	return new Promise((resolve, reject) => {
 		const process = spawn('node', ['gekko', '-c', nameConfig, '-b']);
 		process.stdout.on('data', (data) => {
-			// console.log(`stdout: ${data}`);
+			console.log(`stdout: ${data}`);
 		});
 
 		process.stderr.on('data', (data) => {
-			// console.log(`stderr: ${data}`);
+			console.log(`stderr: ${data}`);
 		});
 
 		process.on('close', (code) => {
