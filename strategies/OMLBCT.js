@@ -18,10 +18,10 @@ method.buy = function (amountDollar, price) {
   // cacl new balance and new asset
   if (this.balance >= amountDollar) {
     this.balance = this.balance - amountDollar;
-    this.asset = this.asset + amountDollar / price;
+    this.asset = this.asset + (amountDollar / price);
     return true;
   } else {
-    // log.info(`Not enough money to buy, balance = ${this.balance}, amount dollar = ${amountDollar}`);
+    log.info(`Not enough money to buy, balance = ${this.balance}, amount dollar = ${amountDollar}`);
     return false;
   }
 }
@@ -31,13 +31,14 @@ method.sell = function (amountAsset, price) {
     direction: "short", // short/long,
     amount: amountAsset
   })
+
   // cacl new balance and new asset
-  if (this.asset - amountAsset >= -0.000001) { // Sai số qua nhiều lần mua bán
+  if (this.asset - amountAsset >= 0) { // Sai số qua nhiều lần mua bán
     this.asset = this.asset - amountAsset;
     this.balance = this.balance + amountAsset * price;
     return true;
   } else {
-    // log.info(`Not enough asset to sell, asset = ${this.asset}, amount asset = ${amountAsset}`);
+    log.info(`Not enough asset to sell, asset = ${this.asset}, amount asset = ${amountAsset}`);
     return false;
   }
 }
@@ -107,7 +108,8 @@ method.update = function (candle) {
     let curTrade = this.tradesManager[i];
     // Tăng biến đợi của trade lên 1
     curTrade.wait++;
-    // let pecentProfit = 100 * (candle.close - curTrade.close) / curTrade.close;
+    //bỏ qua lần đợi đầu tiên (trùng với chính candle đó)
+    if (curTrade.wait == 1) continue;
     let upTrend = 100 * (candle.high - curTrade.close) / Math.abs(curTrade.close);
     let downTrend = 100 * (candle.low - curTrade.close) / Math.abs(curTrade.close);
 
@@ -117,7 +119,7 @@ method.update = function (candle) {
         for (let j = 0; j < this.tradesHistory.length; j++) {
           if (this.tradesHistory[j].id === curTrade.id) {
             this.tradesHistory[j].candleSell = candle;
-            this.tradesHistory[j].candleSell.sellingPrice = sellingPrice;
+            this.tradesHistory[j].sellingPrice = sellingPrice;
           }
         }
       }
@@ -172,12 +174,12 @@ method.finished = function () {
       curTrade.candleSell = {
         start: this.finalTime,
         close: this.finalClose,
-        sellingPrice: this.finalClose
       }
+      curTrade.sellingPrice = this.finalClose
     }
 
-    log.write(`${moment.utc(curTrade.candleBuy.start).format('DD-MM-YYYY HH:mm')} \t Hold: ${caclDistance2Dates(curTrade.candleBuy.start.unix(), curTrade.candleSell.start.unix())} \t buy: ${curTrade.candleBuy.close} \t sell: ${curTrade.candleSell.sellingPrice} \t profit: ${100* (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close)/curTrade.candleBuy.close} %`)
-    totalProfitPerTrade += (100 * (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close) / curTrade.candleBuy.close);
+    log.write(`${moment.utc(curTrade.candleBuy.start).format('DD-MM-YYYY HH:mm')} \t Hold: ${caclDistance2Dates(curTrade.candleBuy.start.unix(), curTrade.candleSell.start.unix())} \t buy: ${curTrade.candleBuy.close} \t sell: ${curTrade.sellingPrice} \t profit: ${100* (curTrade.sellingPrice - curTrade.candleBuy.close)/curTrade.candleBuy.close} %`)
+    totalProfitPerTrade += (100 * (curTrade.sellingPrice - curTrade.candleBuy.close) / curTrade.candleBuy.close);
   }
   log.write(`\n`);
   log.write(`Start Balance: \t\t\t ${this.settings.startBalance} $`);
@@ -188,18 +190,19 @@ method.finished = function () {
   log.write(`Profit versus Market: \t\t ${100*(this.balance - this.settings.startBalance)/this.startClose} %`)
   log.write(`Number of profitable trades: \t ${_.filter(this.tradesHistory, curTrade => {
     if (!curTrade.candleSell) {
+      console.log(curTrade);
       return false;
     }
-    return (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close) > 0;
+    return (curTrade.sellingPrice - curTrade.candleBuy.close) >= 0;
   }).length}`);
   log.write(`Number of loss-making trades: \t ${
     _.filter(this.tradesHistory, curTrade => {
       if (!curTrade.candleSell) return false;
-      return (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close) < 0;
+      return (curTrade.sellingPrice - curTrade.candleBuy.close) < 0;
     }).length
   }`);
   log.write(`Market: \t\t\t ${100 * (this.finalClose - this.startClose) / this.startClose} %`);
-  log.write(`Start Price (open): \t\t ${this.startClose} $`);
+  log.write(`Start Price (close): \t\t ${this.startClose} $`);
   log.write(`End Price (close): \t\t ${this.finalClose} $`);
   log.write(`\n`);
 }
