@@ -7,9 +7,9 @@ const moment = require('moment');
 // let's create our own method
 var method = {};
 
-method.buy = function(amountDollar, price) {
+method.buy = function (amountDollar, price) {
   this.advice({
-    direction: "long",// short/long
+    direction: "long", // short/long
     // trigger: { // Chưa dùng
 
     // },
@@ -28,7 +28,7 @@ method.buy = function(amountDollar, price) {
 
 method.sell = function (amountAsset, price) {
   this.advice({
-    direction: "short",// short/long,
+    direction: "short", // short/long,
     amount: amountAsset
   })
   // cacl new balance and new asset
@@ -78,20 +78,8 @@ method.init = function () {
 
 method.update = function (candle) {
   if (!this.startOpen) {
-    this.startOpen = candle.open;
+    this.startOpen = candle.close;
   }
-
-  // axios.get('http://localhost:5000/rf_advice', {
-  //   params: {
-  //     open: candle.open,
-  //     high: candle.high,
-  //     low: candle.low,
-  //     close: candle.close,
-  //     volume: candle.volume,
-  //     trades: candle.trades,
-  //   }
-  // }).then((result) => {
-  // buy
 
   let advice = this.advices[new Date(candle.start).getTime()];
 
@@ -119,7 +107,9 @@ method.update = function (candle) {
     let curTrade = this.tradesManager[i];
     // Tăng biến đợi của trade lên 1
     curTrade.wait++;
-    let pecentProfit = 100 * (candle.close - curTrade.close) / curTrade.close;
+    // let pecentProfit = 100 * (candle.close - curTrade.close) / curTrade.close;
+    let upTrend = 100 * (candle.high - curTrade.close) / Math.abs(curTrade.close);
+    let downTrend = 100 * (candle.low - curTrade.close) / Math.abs(curTrade.close);
 
     finalizeTrade = (sellingPrice) => {
       curTrade.isTrading = false;
@@ -134,19 +124,19 @@ method.update = function (candle) {
     }
 
     // Profit less than stopLoss
-    if (pecentProfit <= this.stopLoss) {
+    if (upTrend <= this.stopLoss) {
       this.sell(curTrade.asset, candle.low, this.advice.bind(this));
       finalizeTrade(candle.low)
     } else
 
       // Profit greater than takeProfit
-      if (pecentProfit >= this.takeProfit) {
+      if (downTrend >= this.takeProfit) {
         this.sell(curTrade.asset, candle.high, this.advice.bind(this));
         finalizeTrade(candle.high)
       } else
 
         // Vượt quá giới hạn trade
-        if (curTrade.wait >= this.stopTrade) {
+        if (curTrade.wait > this.stopTrade) {
           this.sell(curTrade.asset, candle.close, this.advice.bind(this));
           finalizeTrade(candle.close)
         }
