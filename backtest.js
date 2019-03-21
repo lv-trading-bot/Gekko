@@ -4,22 +4,30 @@ const {spawn} = require('child_process');
 const moment = require('moment');
 const axios = require('axios');
 
-const marketsAndPair = [{
-	exchange: "binance",
-	currency: "USDT",
-	asset: "BTC"
-}]
+const marketsAndPair = [
+	// {
+	// 	exchange: "binance",
+	// 	currency: "USDT",
+	// 	asset: "BTC"
+	// },
+	{
+		exchange: "binance",
+		currency: "USDT",
+		asset: "ETH"
+	}
+]
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
-const candleSizes = [30, 60] // Đơn vị phút
+// const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
+const candleSizes = [60]
 const dateRanges = [{
 		trainDaterange: {
-			from: "2018-02-11 21:00:00",
-			to: "2018-03-31 00:00:00"
+			from: "2018-10-01 21:00:00",
+			to: "2018-11-30 00:00:00"
 		},
 		backtestDaterange: {
-			from: "2018-04-15 01:00:00",
-			to: "2018-05-01 01:00:00"
+			from: "2018-12-01 01:00:00",
+			to: "2018-12-05 01:00:00"
 		}
 	},
 	// {
@@ -61,7 +69,7 @@ const strategyGetData = {
 const nameConfig = "backtest-config.js";
 const nameSampleConfig = "sample-config-for-backtest.js";
 
-const api = "http://192.168.43.167:5000/backtest";
+const api = "http://localhost:5000/backtest";
 
 const main = async () => {
 	let sampleConfig = require('./' + nameSampleConfig);

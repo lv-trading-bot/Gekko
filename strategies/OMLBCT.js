@@ -77,8 +77,8 @@ method.init = function () {
 }
 
 method.update = function (candle) {
-  if (!this.startOpen) {
-    this.startOpen = candle.close;
+  if (!this.startClose) {
+    this.startClose = candle.close;
   }
 
   let advice = this.advices[new Date(candle.start).getTime()];
@@ -124,13 +124,13 @@ method.update = function (candle) {
     }
 
     // Profit less than stopLoss
-    if (upTrend <= this.stopLoss) {
+    if (downTrend <= this.stopLoss) {
       this.sell(curTrade.asset, candle.low, this.advice.bind(this));
       finalizeTrade(candle.low)
     } else
 
       // Profit greater than takeProfit
-      if (downTrend >= this.takeProfit) {
+      if (upTrend >= this.takeProfit) {
         this.sell(curTrade.asset, candle.high, this.advice.bind(this));
         finalizeTrade(candle.high)
       } else
@@ -185,7 +185,7 @@ method.finished = function () {
   log.write(`Profit: \t\t\t ${this.balance - this.settings.startBalance} $`);
   log.write(`Total Profit: \t\t\t ${100*(this.balance - this.settings.startBalance)/this.settings.startBalance} %`);
   log.write(`Total Profit Per Trade: \t ${totalProfitPerTrade} %`);
-  log.write(`Profit versus Market: \t\t ${100*(this.balance - this.settings.startBalance)/this.startOpen} %`)
+  log.write(`Profit versus Market: \t\t ${100*(this.balance - this.settings.startBalance)/this.startClose} %`)
   log.write(`Number of profitable trades: \t ${_.filter(this.tradesHistory, curTrade => {
     if (!curTrade.candleSell) {
       return false;
@@ -198,8 +198,8 @@ method.finished = function () {
       return (curTrade.candleSell.sellingPrice - curTrade.candleBuy.close) < 0;
     }).length
   }`);
-  log.write(`Market: \t\t\t ${100 * (this.finalClose - this.startOpen) / this.startOpen} %`);
-  log.write(`Start Price (open): \t\t ${this.startOpen} $`);
+  log.write(`Market: \t\t\t ${100 * (this.finalClose - this.startClose) / this.startClose} %`);
+  log.write(`Start Price (open): \t\t ${this.startClose} $`);
   log.write(`End Price (close): \t\t ${this.finalClose} $`);
   log.write(`\n`);
 }
