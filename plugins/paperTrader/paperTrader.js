@@ -95,12 +95,14 @@ PaperTrader.prototype.updatePosition = function(what, amount) {
 
   let cost;
   // let amount;
+  let amountWithFee = 0;
 
   // virtually trade all {currency} to {asset}
   // at the current price (minus fees)
   if(what === 'long') {
+    amountWithFee = this.extractFee(amount / this.price);
     cost = (1 - this.fee) * this.portfolio.currency;
-    this.portfolio.asset += this.extractFee(amount / this.price);
+    this.portfolio.asset += amountWithFee;
     amount = amount || this.portfolio.asset;
     this.portfolio.currency = this.portfolio.currency - amount;
 
@@ -111,8 +113,9 @@ PaperTrader.prototype.updatePosition = function(what, amount) {
   // virtually trade all {currency} to {asset}
   // at the current price (minus fees)
   else if(what === 'short') {
+    amountWithFee = this.extractFee(amount * this.price);
     cost = (1 - this.fee) * (this.portfolio.asset * this.price);
-    this.portfolio.currency += this.extractFee(amount * this.price);
+    this.portfolio.currency += amountWithFee;
     amount = amount || (this.portfolio.currency / this.price);
     this.portfolio.asset = this.portfolio.asset - amount;
 
@@ -122,7 +125,7 @@ PaperTrader.prototype.updatePosition = function(what, amount) {
 
   const effectivePrice = this.price * this.fee;
 
-  return { cost, amount, effectivePrice };
+  return { cost, amount, effectivePrice, amountWithFee };
 }
 
 PaperTrader.prototype.getBalance = function() {
@@ -183,7 +186,7 @@ PaperTrader.prototype.processAdvice = function(advice) {
     date: advice.date,
   });
 
-  const { cost, amount, effectivePrice } = this.updatePosition(advice.recommendation, advice.amount);
+  const { cost, amount, effectivePrice, amountWithFee } = this.updatePosition(advice.recommendation, advice.amount);
 
   this.relayPortfolioChange();
   this.relayPortfolioValueChange();
@@ -199,7 +202,8 @@ PaperTrader.prototype.processAdvice = function(advice) {
     balance: this.getBalance(),
     date: advice.date,
     effectivePrice,
-    feePercent: this.rawFee
+    feePercent: this.rawFee,
+    amountWithFee: amountWithFee 
   });
 }
 

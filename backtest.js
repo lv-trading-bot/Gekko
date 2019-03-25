@@ -13,7 +13,7 @@ const marketsAndPair = [
 	{
 		exchange: "binance",
 		currency: "USDT",
-		asset: "ETH"
+		asset: "BTC"
 	}
 ]
 
@@ -22,12 +22,12 @@ const marketsAndPair = [
 const candleSizes = [60]
 const dateRanges = [{
 		trainDaterange: {
-			from: "2018-10-01 21:00:00",
-			to: "2018-11-30 00:00:00"
+			from: "2018-04-01 21:00:00",
+			to: "2018-06-30 00:00:00"
 		},
 		backtestDaterange: {
-			from: "2018-12-01 01:00:00",
-			to: "2018-12-05 01:00:00"
+			from: "2018-08-01 01:00:00",
+			to: "2018-11-01 01:00:00"
 		}
 	},
 	// {

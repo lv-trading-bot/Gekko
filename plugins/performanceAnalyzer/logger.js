@@ -85,11 +85,10 @@ if(mode === 'backtest') {
   Logger.prototype.finalize = function(report) {
 
     log.info();
-    // Disable roundtrip report
-    // log.info('(ROUNDTRIP) REPORT:');
+    log.info('(ROUNDTRIP) REPORT:');
 
-    // this.logRoundtripHeading();
-    // _.each(this.roundtrips, this.logRoundtrip, this);
+    this.logRoundtripHeading();
+    _.each(this.roundtrips, this.logRoundtrip, this);
 
     log.info()
     log.info(`(PROFIT REPORT) start time:\t\t\t ${report.startTime}`);
