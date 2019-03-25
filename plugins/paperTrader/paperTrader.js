@@ -100,11 +100,14 @@ PaperTrader.prototype.updatePosition = function(what, amount) {
   // virtually trade all {currency} to {asset}
   // at the current price (minus fees)
   if(what === 'long') {
+    // amount: currency
+    // amountWithFee: asset
+    // Nếu không có amount thì chuyển về all-in
+    amount = amount !== undefined ? amount : this.portfolio.currency;
     amountWithFee = this.extractFee(amount / this.price);
-    cost = (1 - this.fee) * this.portfolio.currency;
+    cost = (1 - this.fee) * amount;
     this.portfolio.asset += amountWithFee;
-    amount = amount || this.portfolio.asset;
-    this.portfolio.currency = this.portfolio.currency - amount;
+    this.portfolio.currency -= amount;
 
     this.exposed = true;
     this.trades++;
@@ -113,11 +116,14 @@ PaperTrader.prototype.updatePosition = function(what, amount) {
   // virtually trade all {currency} to {asset}
   // at the current price (minus fees)
   else if(what === 'short') {
+    // amount: asset
+    // amountWithFee: currency
+    // Nếu không có amount thì chuyển về all-in
+    amount = amount !== undefined ? amount : (this.portfolio.currency / this.price);
     amountWithFee = this.extractFee(amount * this.price);
-    cost = (1 - this.fee) * (this.portfolio.asset * this.price);
+    cost = (1 - this.fee) * (amount * this.price);
     this.portfolio.currency += amountWithFee;
-    amount = amount || (this.portfolio.currency / this.price);
-    this.portfolio.asset = this.portfolio.asset - amount;
+    this.portfolio.asset -= amount;
 
     this.exposed = false;
     this.trades++;

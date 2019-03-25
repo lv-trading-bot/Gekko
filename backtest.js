@@ -252,7 +252,7 @@ const runGekkoProcess = (nameConfig) => {
 	return new Promise((resolve, reject) => {
 		const process = spawn('node', ['gekko', '-c', nameConfig, '-b']);
 		process.stdout.on('data', (data) => {
-			console.log(`stdout: ${data}`);
+			console.log(`${data}`);
 		});
 
 		process.stderr.on('data', (data) => {
