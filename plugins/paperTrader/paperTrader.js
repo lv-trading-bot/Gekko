@@ -198,13 +198,13 @@ PaperTrader.prototype.processAdvice = function(advice) {
   this.relayPortfolioValueChange();
 
   this.deferredEmit('tradeCompleted', {
-    id: this.tradeId,
+    id: _.cloneDeep(this.tradeId),
     adviceId: advice.id,
     action,
     cost,
     amount,
-    price: this.price,
-    portfolio: this.portfolio,
+    price: _.cloneDeep(this.price),
+    portfolio: _.cloneDeep(this.portfolio),
     balance: this.getBalance(),
     date: advice.date,
     effectivePrice,

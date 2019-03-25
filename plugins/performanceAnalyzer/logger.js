@@ -60,7 +60,7 @@ if(mode === 'backtest') {
     if(trade.action !== 'sell' && trade.action !== 'buy')
       return;
 
-    var at = trade.date.format('YYYY-MM-DD HH:mm:ss');
+    let at = trade.date.format('YYYY-MM-DD HH:mm:ss');
 
 
     if(trade.action === 'sell')
