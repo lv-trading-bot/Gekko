@@ -144,7 +144,7 @@ config.paperTrader = {
   },
   // how much fee in % does each trade cost?
   feeMaker: 0.1,
-  feeTaker: 0.1,
+  feeTaker: 0,
   feeUsing: 'maker',
   // how much slippage/spread should Gekko assume per trade?
   slippage: 0,

@@ -3,6 +3,8 @@ var _ = require('lodash');
 var log = require('../core/log');
 // const axios = require('axios');
 const moment = require('moment');
+var utils = require('../core/util');
+let candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
 
 // let's create our own method
 var method = {};
@@ -13,7 +15,7 @@ method.buy = function (amountDollar) {
     // trigger: { // Chưa dùng
 
     // },
-    amount: amountDollar
+    amount: amountDollar,
   })
   // cacl new balance and new asset
   // if (this.balance >= amountDollar) {
@@ -89,52 +91,51 @@ method.update = function (candle) {
   }
 
   // sell
-  for (let i = 0; i < this.tradesManager.length; i++) {
-    let curTrade = this.tradesManager[i];
-    // Tăng biến đợi của trade lên 1
-    curTrade.wait++;
-    // let pecentProfit = 100 * (candle.close - curTrade.close) / curTrade.close;
-    let upTrend = 100 * (candle.high - curTrade.buy.price) / Math.abs(curTrade.buy.price);
-    let downTrend = 100 * (candle.low - curTrade.buy.price) / Math.abs(curTrade.buy.price);
+  // for (let i = 0; i < this.tradesManager.length; i++) {
+  //   let curTrade = this.tradesManager[i];
+  //   // Tăng biến đợi của trade lên 1
+  //   curTrade.wait++;
+  // let pecentProfit = 100 * (candle.close - curTrade.close) / curTrade.close;
+  // let upTrend = 100 * (candle.high - curTrade.buy.price) / Math.abs(curTrade.buy.price);
+  // let downTrend = 100 * (candle.low - curTrade.buy.price) / Math.abs(curTrade.buy.price);
 
-    finalizeTrade = () => {
-      curTrade.isDone = true;
-      this.adviceIdSelling = curTrade.buy.adviceId;
-      // if (this.settings.backtest) {
-      //   for (let j = 0; j < this.tradesHistory.length; j++) {
-      //     if (this.tradesHistory[j].id === curTrade.id) {
-      //       this.tradesHistory[j].candleSell = candle;
-      //       this.tradesHistory[j].candleSell.sellingPrice = sellingPrice;
-      //     }
-      //   }
-      // }
-    }
+  // finalizeTrade = () => {
+  //   curTrade.isDone = true;
+  //   this.adviceIdSelling = curTrade.buy.adviceId;
+  // if (this.settings.backtest) {
+  //   for (let j = 0; j < this.tradesHistory.length; j++) {
+  //     if (this.tradesHistory[j].id === curTrade.id) {
+  //       this.tradesHistory[j].candleSell = candle;
+  //       this.tradesHistory[j].candleSell.sellingPrice = sellingPrice;
+  //     }
+  //   }
+  // }
+  // }
 
-    // Profit less than stopLoss
-    if (downTrend <= this.stopLoss) {
-      this.sell(curTrade.buy.amountWithFee);
-      this.lo++;
-      finalizeTrade()
-    } else
+  // // Profit less than stopLoss
+  // if (downTrend <= this.stopLoss) {
+  //   this.sell(curTrade.buy.amountWithFee);
+  //   this.lo++;
+  //   finalizeTrade()
+  // } else
 
-    // Profit greater than takeProfit
-    if (upTrend >= this.takeProfit) {
-      this.sell(curTrade.buy.amountWithFee);
-      this.loi++;
-      finalizeTrade()
-    } else
+  //   // Profit greater than takeProfit
+  //   if (upTrend >= this.takeProfit) {
+  //     this.sell(curTrade.buy.amountWithFee);
+  //     this.loi++;
+  //     finalizeTrade()
+  //   } else
 
-    // Vượt quá giới hạn trade
-    if (curTrade.wait >= this.stopTrade) {
-      this.sell(curTrade.buy.amountWithFee);
-      this.random++;
-      finalizeTrade()
-    }
-  }
-  // Clear trading === false
-  this.tradesManager = this.tradesManager.filter(trade => {
-    return !trade.isDone;
-  })
+  // // Vượt quá giới hạn trade
+  // if (curTrade.wait >= this.stopTrade) {
+  //   this.sell(curTrade.buy.amountWithFee);
+  //   this.random++;
+  // }
+  // }
+  // // Clear trading === false
+  // this.tradesManager = this.tradesManager.filter(trade => {
+  //   return !trade.isDone;
+  // })
 
   this.finalClose = candle.close;
   this.finalTime = candle.start;
@@ -143,27 +144,44 @@ method.update = function (candle) {
 
 method.check = function (candle) {}
 
-method.onTrade = function(trade) {
-  if(trade.action === "buy") {
+method.onTrade = function (trade) {
+  if (trade.action === "buy") {
     this.tradesManager.push({
       buy: trade,
       wait: 0
     })
-    if(this.settings.backtest) {
+    if (this.settings.backtest) {
       this.tradesHistory.push({
         buy: trade
       })
     }
+    //assetAmount now known, insert trigger
+    if (trade.amountWithFee != 0) {
+      this.advice({
+        direction: 'long',
+        amount: 0,
+        trigger: {
+          type: 'doubleStop',
+          initialStart: trade.date,
+          initialPrice: trade.price,
+          stopLoss: this.settings.stopLoss,
+          takeProfit: this.settings.takeProfit,
+          expires: moment(trade.date).add(this.settings.stopTrade * candleSize, 'm'),
+          assetAmount: trade.amountWithFee,
+        }
+      })
+    }
   } else if (trade.action === 'sell') {
-    if(this.settings.backtest) {
+    if (this.settings.backtest) {
       for (let i = 0; i < this.tradesHistory.length; i++) {
         let curTrade = this.tradesHistory[i];
-        if(curTrade.buy.adviceId === this.adviceIdSelling) {
+        if (curTrade.buy.adviceId === this.adviceIdSelling) {
           curTrade.sell = trade
           break;
         }
       }
     }
+    //TODO: remove completed trade instead of finalizeTrade()
   }
 }
 
@@ -182,13 +200,13 @@ method.finished = function () {
     let curTrade = this.tradesHistory[i];
     if (curTrade.sell) {
       log.write(`${index++} \t ${moment.utc(curTrade.buy.date).format('DD-MM-YYYY HH:mm')} \t Hold: ${caclDistance2Dates(curTrade.buy.date.unix(), curTrade.sell.date.unix())} \t buy: ${curTrade.buy.price} \t sell: ${curTrade.sell.price} \t profit: ${100* (curTrade.sell.price - curTrade.buy.price)/curTrade.buy.price} %`)
-      totalProfitPerTrade += 100* (curTrade.sell.price - curTrade.buy.price)/curTrade.buy.price;
+      totalProfitPerTrade += 100 * (curTrade.sell.price - curTrade.buy.price) / curTrade.buy.price;
     }
   }
   for (let i = 0; i < this.tradesManager.length; i++) {
     let curTrade = this.tradesManager[i];
     log.write(`${index++} \t ${moment.utc(curTrade.buy.date).format('DD-MM-YYYY HH:mm')} \t Hold: ${curTrade.wait}h \t buy: ${curTrade.buy.price} \t sell: ${this.finalClose} \t profit: ${100* (this.finalClose - curTrade.buy.price)/curTrade.buy.price} %`)
-    totalProfitPerTrade += 100* (this.finalClose - curTrade.buy.price)/curTrade.buy.price;
+    totalProfitPerTrade += 100 * (this.finalClose - curTrade.buy.price) / curTrade.buy.price;
   }
   log.write(`Total Profit Per Trade: \t ${totalProfitPerTrade} %`);
   log.write(`Amount take profit: \t ${this.loi}`);
