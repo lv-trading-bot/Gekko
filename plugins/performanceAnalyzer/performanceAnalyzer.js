@@ -27,7 +27,9 @@ const PerformanceAnalyzer = function() {
   this.currency = watchConfig.currency;
   this.asset = watchConfig.asset;
 
-  this.logger = new Logger(watchConfig);
+  this.roundTripReportMode = "BY_DOUBLESTOP_TRIGGER"; // DEFAULT || BY_DOUBLESTOP_TRIGGER
+
+  this.logger = new Logger(watchConfig, this.roundTripReportMode);
 
   this.trades = 0;
 
@@ -103,6 +105,11 @@ PerformanceAnalyzer.prototype.processTradeCompleted = function(trade) {
   }
 }
 
+PerformanceAnalyzer.prototype.processTriggerFired = function(roundTrip) {
+  console.log("processTriggerFired", roundTrip)
+  this.logger.handleRoundtrip(roundTrip, "BY_DOUBLESTOP_TRIGGER");
+}
+
 PerformanceAnalyzer.prototype.registerRoundtripPart = function(trade) {
   if(this.trades === 1 && trade.action === 'sell') {
     // this is not part of a valid roundtrip
@@ -153,7 +160,7 @@ PerformanceAnalyzer.prototype.handleCompletedRoundtrip = function() {
 
   this.roundTrips[this.roundTrip.id] = roundtrip;
 
-  this.logger.handleRoundtrip(roundtrip);
+  this.logger.handleRoundtrip(roundtrip, "DEFAULT");
 
   this.deferredEmit('roundtrip', roundtrip);
 
