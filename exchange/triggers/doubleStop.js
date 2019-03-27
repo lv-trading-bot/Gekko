@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const moment = require('moment');
 
 /**
  * @param initialPrice
@@ -35,45 +36,54 @@ class DoubleStop extends EventEmitter {
     this.isLive = true;
   }
 
-  updatePrice(price, candleStart) {
+  updatePrice(candle) {
     if (!this.isLive) {
       return;
     }
 
-    const trend = (price - this.initialPrice) * 100 / Math.abs(this.initialPrice);
+    const upTrend = (candle.high - this.initialPrice) * 100 / Math.abs(this.initialPrice);
+    const downTrend = (candle.low - this.initialPrice) * 100 / Math.abs(this.initialPrice);
+    //trend at close
+    const trend = (candle.close - this.initialPrice) * 100 / Math.abs(this.initialPrice);
 
-    if (trend <= this.stopLoss || trend >= this.takeProfit) {
+    if (downTrend <= this.stopLoss || upTrend >= this.takeProfit) {
       this.trigger({
-        what: trend <= this.stopLoss ? "STOPLOSS" : "TAKEPROFIT",
+        what: downTrend <= this.stopLoss ? "STOPLOSS" : "TAKEPROFIT",
         meta: {
-          trend,
+          initialStart: this.initialStart,
           initialPrice: this.initialPrice,
-          price: price,
+          trend,
+          expires: this.expires,
+          exitPrice: candle.close,
+          exitCandle: candle
         }
       });
       return;
     }
-    //console.log(candleStart, this.expires, candleStart.isAfter(this.expires))
-    if (candleStart.isAfter(this.expires)) {
+    //console.log(candle, this.expires, candle.isAfter(this.expires))
+    if (moment(candle.start).isAfter(this.expires)) {
       this.trigger({
         what: "EXPIRES",
         meta: {
           initialStart: this.initialStart,
+          initialPrice: this.initialPrice,
+          trend,
           expires: this.expires,
-          candleStart: candleStart
+          exitPrice: candle.close,
+          exitCandle: candle
         }
       });
     }
   }
 
-  trigger(debug) {
+  trigger(roundTrip) {
     if (!this.isLive) {
       return;
     }
 
     this.isLive = false;
     if (this.onTrigger) {
-      this.onTrigger(this.id, this.assetAmount, debug);
+      this.onTrigger(this.id, this.assetAmount, roundTrip);
     }
     this.emit('trigger', this.assetAmount);
   }

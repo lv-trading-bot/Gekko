@@ -301,16 +301,11 @@ PaperTrader.prototype.createTrigger = function (advice) {
   }
 }
 
-PaperTrader.prototype.onDoubleStopTrigger = function (id, assetAmount, debug) {
-
-  console.log(debug);
+PaperTrader.prototype.onDoubleStopTrigger = function (id, assetAmount, roundTrip) {
 
   const date = this.now();
 
-  this.deferredEmit('triggerFired', {
-    id: id,
-    date
-  });
+  this.deferredEmit('triggerFired', roundTrip);
 
   const {
     cost,
@@ -404,7 +399,7 @@ PaperTrader.prototype.processCandle = function (candle, done) {
 
   if (this.activeDoubleStopTriggers) {
     this.activeDoubleStopTriggers.forEach(trigger => {
-      trigger.updatePrice(this.price, moment(this.candle.start))
+      trigger.updatePrice(candle)
     });
   }
 

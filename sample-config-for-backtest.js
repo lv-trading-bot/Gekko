@@ -140,7 +140,7 @@ config.paperTrader = {
   simulationBalance: {
     // these are in the unit types configured in the watcher.
     asset: 0,
-    currency: 2500,
+    currency: 5000,
   },
   // how much fee in % does each trade cost?
   feeMaker: 0.1,
