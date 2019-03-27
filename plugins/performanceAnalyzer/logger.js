@@ -41,7 +41,7 @@ Logger.prototype.logReport = function (trade, report) {
 
 Logger.prototype.logRoundtripHeading = function () {
   if (this.roundTripReportMode === "BY_DOUBLESTOP_TRIGGER") {
-    log.info('(ROUNDTRIP)', 'entry date (UTC) \thold \tbuy \tsell \tprofit');
+    log.info('(ROUNDTRIP)', 'entry date (UTC) \thold(h) buy \tsell \tprofit');
   } else {
     log.info('(ROUNDTRIP)', 'entry date (UTC)  \texit date (UTC)  \texposed duration\tP&L \tprofit');
   }
@@ -130,6 +130,7 @@ if (mode === 'backtest') {
 
         totalProfit += (curRt.meta.exitPrice - curRt.meta.initialPrice) * 100 / curRt.meta.initialPrice;
       }
+      log.info()
       log.info("(PROFIT REPORT) Profitable trades: \t\t\t", profitableTrades);
       log.info("(PROFIT REPORT) Loss making trades: \t\t\t", lossMakingTrades);
       log.info("(PROFIT REPORT) Expired Trades: \t\t\t", expiredTrades);

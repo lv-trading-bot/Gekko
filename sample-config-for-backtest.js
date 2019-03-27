@@ -170,7 +170,8 @@ config.multiPaperTrader = {
 
 config.performanceAnalyzer = {
   enabled: true,
-  riskFreeReturn: 5
+  riskFreeReturn: 5,
+  roundTripReportMode: "BY_DOUBLESTOP_TRIGGER"//"BY_DOUBLESTOP_TRIGGER" // DEFAULT
 }
 
 config.multiPerformanceAnalyzer = {
