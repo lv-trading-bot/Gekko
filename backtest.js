@@ -15,7 +15,7 @@ const marketsAndPair = [
   {
     exchange: "binance",
     currency: "USDT",
-    asset: "ETH"
+    asset: "BTC"
   }
 ]
 
@@ -112,7 +112,7 @@ const main = async () => {
           let trainData = require('./' + trainDataName);
           let testData = require('./' + testDataName);
           console.log("Connect python ...");
-          let result = await sendTrainAndTestDataToPythonServer(trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName);
+          let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName);
           console.log('Connect python done ...')
           if (result) {
             let backtestData = result;
@@ -135,7 +135,7 @@ const main = async () => {
   }
 }
 
-const sendTrainAndTestDataToPythonServer = (trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName) => {
+const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName) => {
   return new Promise((resolve, reject) => {
     // remove vwp from train data
     trainData = _.map(trainData, temp => {
@@ -148,6 +148,7 @@ const sendTrainAndTestDataToPythonServer = (trainData, testData, trainDaterange,
 
     let data = {
       metadata: {
+        market_info: marketInfo,
         train_daterange: {
           from: new Date(trainDaterange.from).getTime(),
           to: new Date(trainDaterange.to).getTime()
@@ -157,7 +158,7 @@ const sendTrainAndTestDataToPythonServer = (trainData, testData, trainDaterange,
           to: new Date(backtestDaterange.to).getTime()
         },
         candle_size: candleSize,
-        model_name: modelName
+        model_name: modelName,
       },
       train_data: trainData,
       backtest_data: testData

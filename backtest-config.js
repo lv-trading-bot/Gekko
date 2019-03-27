@@ -1,6 +1,6 @@
 var config = {}; 
 config['debug'] = true;
-config['watch'] = {"exchange":"binance","currency":"USDT","asset":"ETH"};
+config['watch'] = {"exchange":"binance","currency":"USDT","asset":"BTC"};
 config['tradingAdvisor'] = {"enabled":true,"method":"OMLBCT","candleSize":60,"historySize":0,"enable":true};
 config['OMLBCT'] = {"stopLoss":-10,"takeProfit":2,"amountForOneTrade":100,"stopTrade":24,"backtest":true,"dataFile":"data-for-backtest/backtest-data.json"};
 config['writeCandle2Csv'] = {"short":10,"long":21,"signal":9,"thresholds":{"down":-0.025,"up":0.025,"persistence":1,"low":30,"high":70},"interval":14,"fileName":"BTC_USDT_RSI_MACD.csv","enable":false};
@@ -47,5 +47,5 @@ config['custom'] = {"my_custom_setting":10,"enable":false};
 config['talib-macd'] = {"parameters":{"optInFastPeriod":10,"optInSlowPeriod":21,"optInSignalPeriod":9},"thresholds":{"down":-0.025,"up":0.025},"enable":false};
 config['tulip-adx'] = {"optInTimePeriod":10,"thresholds":{"down":-0.025,"up":0.025},"enable":false};
 config['I understand that Gekko only automates MY OWN trading strategies'] = false;
-config['writeCandle2Json'] = {"fileName":"data-for-backtest/test_binance_ETH_USDT_OMLBCT_60_15-04-18_01-05-18.json","stopTrade":24,"stopLoss":-10,"takeProfit":2};
+config['writeCandle2Json'] = {"fileName":"data-for-backtest/test_binance_BTC_USDT_OMLBCT_60_15-04-18_01-05-18.json","stopTrade":24,"stopLoss":-10,"takeProfit":2};
 module.exports = config;
