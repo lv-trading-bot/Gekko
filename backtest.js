@@ -58,7 +58,7 @@ const strategyForBacktest = [{
   }
 }];
 
-const modelName = "random_forest";
+const modelName = process.argv[2] || "random_forest";
 const strategyGetData = {
   name: "writeCandle2Json",
   settings: {
