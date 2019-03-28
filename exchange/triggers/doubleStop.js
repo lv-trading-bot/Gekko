@@ -56,7 +56,8 @@ class DoubleStop extends EventEmitter {
           expires: this.expires,
           exitPrice: candle.close,
           exitCandle: candle
-        }
+        },
+        id: this.id
       });
       return;
     }
@@ -71,7 +72,8 @@ class DoubleStop extends EventEmitter {
           expires: this.expires,
           exitPrice: candle.close,
           exitCandle: candle
-        }
+        },
+        id: this.id
       });
     }
   }

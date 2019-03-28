@@ -365,7 +365,7 @@ config.adviceWriter = {
 
 config.backtestResultExporter = {
   enabled: false,
-  writeToDisk: false,
+  writeToDisk: true,
   data: {
     stratUpdates: false,
     portfolioValues: true,

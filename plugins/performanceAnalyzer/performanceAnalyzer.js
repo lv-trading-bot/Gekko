@@ -27,7 +27,7 @@ const PerformanceAnalyzer = function() {
   this.currency = watchConfig.currency;
   this.asset = watchConfig.asset;
 
-  this.roundTripReportMode = perfConfig.roundTripReportMode;//"BY_DOUBLESTOP_TRIGGER"; // DEFAULT || BY_DOUBLESTOP_TRIGGER
+  this.roundTripReportMode = perfConfig.roundTripReportMode; // DEFAULT || BY_DOUBLESTOP_TRIGGER
 
   this.logger = new Logger(watchConfig, this.roundTripReportMode);
 
@@ -106,8 +106,12 @@ PerformanceAnalyzer.prototype.processTradeCompleted = function(trade) {
 }
 
 PerformanceAnalyzer.prototype.processTriggerFired = function(roundTrip) {
-  console.log("processTriggerFired", roundTrip)
   this.logger.handleRoundtrip(roundTrip, "BY_DOUBLESTOP_TRIGGER");
+  this.logger.handleTriggerFired(roundTrip);
+}
+
+PerformanceAnalyzer.prototype.processTriggerCreated = function(trigger) {
+  this.logger.handleTriggerCreated(trigger);
 }
 
 PerformanceAnalyzer.prototype.registerRoundtripPart = function(trade) {
@@ -198,6 +202,7 @@ PerformanceAnalyzer.prototype.calculateReportStatistics = function() {
     * Math.sqrt(this.trades / (this.trades - 2));
 
   const report = {
+    momentEndTime: moment(_.cloneDeep(this.dates.end)),
     startTime: this.dates.start.utc().format('YYYY-MM-DD HH:mm:ss'),
     endTime: this.dates.end.utc().format('YYYY-MM-DD HH:mm:ss'),
     timespan: timespan.humanize(),

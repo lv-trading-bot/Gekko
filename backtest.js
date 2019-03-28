@@ -15,7 +15,7 @@ const marketsAndPair = [
   {
     exchange: "binance",
     currency: "USDT",
-    asset: "ETH"
+    asset: "BTC"
   }
 ]
 
@@ -234,8 +234,8 @@ const generateConfigBacktest = (config, backtestDaterange, strategy) => {
   config["backtest"].daterange = backtestDaterange;
   config["tradingAdvisor"].method = strategy.name;
   config[strategy.name] = strategy.settings;
-  config["myBacktestResultExporter"].enabled = true;
-  config[""]
+  config["myBacktestResultExporter"].enabled = false;
+  config["backtestResultExporter"].enabled = true;
 }
 
 const generateConfigString = (config) => {

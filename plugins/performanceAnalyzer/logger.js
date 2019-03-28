@@ -16,6 +16,8 @@ const Logger = function (watchConfig, roundTripReportMode) {
   this.roundtrips = [];
 
   this.roundTripReportMode = roundTripReportMode;
+
+  this.triggersManager = [];
 }
 
 Logger.prototype.round = function (amount) {
@@ -73,6 +75,16 @@ Logger.prototype.logRoundtrip = function (rt) {
   log.info('(ROUNDTRIP)', display.join('\t'));
 }
 
+Logger.prototype.handleTriggerCreated = function(trigger) {
+  this.triggersManager.push(trigger);
+}
+
+Logger.prototype.handleTriggerFired = function(roundTrip) {
+  this.triggersManager = _.filter(this.triggersManager, trigger => {
+    return trigger.id !== roundTrip.id;
+  })
+}
+
 if (mode === 'backtest') {
   // we only want to log a summarized one line report, like:
   // 2016-12-19 20:12:00: Paper trader simulated a BUY 0.000 USDT => 1.098 BTC
@@ -102,6 +114,59 @@ if (mode === 'backtest') {
       );
   }
 
+  Logger.prototype.reportTrigger = function(report) {
+
+    let profitableTrades = 0, lossMakingTrades = 0, expiredTrades = 0, 
+    trashs = 0, tradingTrigger = 0, totalProfit = 0, totalProfitTrigger = 0;
+
+    for (let i = 0; i < this.roundtrips.length; i++) {
+
+      let curRt = this.roundtrips[i];
+
+      if (curRt.what === "TAKEPROFIT") {
+        profitableTrades++;
+      } else if (curRt.what === "STOPLOSS") {
+        lossMakingTrades++;
+      } else if (curRt.what === "EXPIRES") {
+        expiredTrades++;
+      } else {
+        trashs++;
+      }
+
+      totalProfit += (curRt.meta.exitPrice - curRt.meta.initialPrice) * 100 / curRt.meta.initialPrice;
+    }
+
+    tradingTrigger = this.triggersManager.length;
+
+    // Log trading trigger (vì ở đây trigger chỉ xuất hiện sau khi mua nên đồng nghĩa với việc những đồng đang trade)
+    log.info();
+    log.info("(PROFIT REPORT) Trading Triggers")
+    log.info();
+    this.logRoundtripHeading();
+    for(let i = 0; i < this.triggersManager.length; i++) {
+      let curTrigger = this.triggersManager[i];
+      let display = [
+        curTrigger.at.utc().format('YYYY-MM-DD HH:mm'),
+        moment.duration(report.momentEndTime.diff(curTrigger.at)).asHours().toFixed(2),
+        curTrigger.properties.initialPrice,
+        report.endPrice,
+        ((report.endPrice - curTrigger.properties.initialPrice) * 100 / curTrigger.properties.initialPrice).toFixed(2)
+      ]
+      log.info('(ROUNDTRIP)', display.join('\t'));
+      totalProfitTrigger += (report.endPrice - curTrigger.properties.initialPrice) * 100 / curTrigger.properties.initialPrice;
+    }
+
+    log.info()
+    log.info("(PROFIT REPORT) Profitable trades: \t\t\t", profitableTrades);
+    log.info("(PROFIT REPORT) Loss making trades: \t\t\t", lossMakingTrades);
+    log.info("(PROFIT REPORT) Expired Trades: \t\t\t", expiredTrades);
+    log.info("(PROFIT REPORT) Trading Trigger: \t\t\t", tradingTrigger);
+    // log.info("(PROFIT REPORT) Trash Trades: \t\t\t", trashs);
+    log.info("(PROFIT REPORT) Total Profit per Trade without trading trigger: \t", totalProfit, "%");
+    log.info("(PROFIT REPORT) Total Profit of trading trigger: \t\t\t", totalProfitTrigger, "%");
+    log.info("(PROFIT REPORT) Sum: \t\t\t\t\t\t\t", totalProfit + totalProfitTrigger, "%");
+  }
+
   Logger.prototype.finalize = function (report) {
 
     log.info();
@@ -110,32 +175,9 @@ if (mode === 'backtest') {
     this.logRoundtripHeading();
     _.each(this.roundtrips, this.logRoundtrip, this);
 
+    // Thống kê các lần đặt trigger
     if (this.roundTripReportMode === "BY_DOUBLESTOP_TRIGGER") {
-      let profitableTrades = 0;
-      let lossMakingTrades = 0;
-      let expiredTrades = 0;
-      let trashs = 0;
-      let totalProfit = 0;
-      for (let i = 0; i < this.roundtrips.length; i++) {
-        let curRt = this.roundtrips[i];
-        if (curRt.what === "TAKEPROFIT") {
-          profitableTrades++;
-        } else if (curRt.what === "STOPLOSS") {
-          lossMakingTrades++;
-        } else if (curRt.what === "EXPIRES") {
-          expiredTrades++;
-        } else {
-          trashs++;
-        }
-
-        totalProfit += (curRt.meta.exitPrice - curRt.meta.initialPrice) * 100 / curRt.meta.initialPrice;
-      }
-      log.info()
-      log.info("(PROFIT REPORT) Profitable trades: \t\t\t", profitableTrades);
-      log.info("(PROFIT REPORT) Loss making trades: \t\t\t", lossMakingTrades);
-      log.info("(PROFIT REPORT) Expired Trades: \t\t\t", expiredTrades);
-      // log.info("(PROFIT REPORT) Trash Trades: \t\t\t", trashs);
-      log.info("(PROFIT REPORT) Total Profit per Trade: \t\t\t", totalProfit);
+      this.reportTrigger(report);
     }
 
     log.info()
