@@ -35,13 +35,15 @@ method.init = function () {
   this.amountForOneTrade = this.settings.amountForOneTrade;
   this.stopTrade = this.settings.stopTrade;
 
-  this.tradesHistory = [];
-  this.tradesManager = [];
-
   this.advices = require("../" + this.settings.dataFile);
 }
 
 method.update = function (candle) {
+
+  if (candle.start.isSame(moment.utc("2018-05-01 01:00:00"))) {
+    this.sell();
+  }
+
   if (!this.startClose) {
     this.startClose = candle.close;
   }
@@ -61,15 +63,6 @@ method.check = function (candle) {}
 //completed trades
 method.onTrade = function (trade) {
   if (trade.action === "buy") {
-    this.tradesManager.push({
-      buy: trade,
-      wait: 0
-    })
-    if (this.settings.backtest) {
-      this.tradesHistory.push({
-        buy: trade
-      })
-    }
     //assetAmount now known, insert trigger
     if (trade.amountWithFee != 0) {
       this.advice({

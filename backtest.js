@@ -15,7 +15,7 @@ const marketsAndPair = [
   {
     exchange: "binance",
     currency: "USDT",
-    asset: "BTC"
+    asset: "ETH"
   }
 ]
 
