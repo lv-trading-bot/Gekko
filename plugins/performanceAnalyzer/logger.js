@@ -114,7 +114,7 @@ if (mode === 'backtest') {
       let profitableTrades = 0;
       let lossMakingTrades = 0;
       let expiredTrades = 0;
-      let trashs = 0;
+      let cleanUpTrades = 0;
       let totalProfit = 0;
       for (let i = 0; i < this.roundtrips.length; i++) {
         let curRt = this.roundtrips[i];
@@ -125,7 +125,7 @@ if (mode === 'backtest') {
         } else if (curRt.what === "EXPIRES") {
           expiredTrades++;
         } else {
-          trashs++;
+          cleanUpTrades++;
         }
 
         totalProfit += (curRt.meta.exitPrice - curRt.meta.initialPrice) * 100 / curRt.meta.initialPrice;
@@ -133,8 +133,8 @@ if (mode === 'backtest') {
       log.info("(PROFIT REPORT) Profitable trades: \t\t\t", profitableTrades);
       log.info("(PROFIT REPORT) Loss making trades: \t\t\t", lossMakingTrades);
       log.info("(PROFIT REPORT) Expired Trades: \t\t\t", expiredTrades);
-      // log.info("(PROFIT REPORT) Trash Trades: \t\t\t", trashs);
-      log.info("(PROFIT REPORT) Total Profit per Trade: \t\t\t", totalProfit);
+      log.info("(PROFIT REPORT) Clean-up Trades: \t\t\t", cleanUpTrades);
+      log.info("(PROFIT REPORT) Total Profit per Trade: \t\t", totalProfit);
     }
 
     log.info()

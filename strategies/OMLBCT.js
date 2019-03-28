@@ -4,7 +4,8 @@ var log = require('../core/log');
 // const axios = require('axios');
 const moment = require('moment');
 var utils = require('../core/util');
-let candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
+const candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
+const daterange = utils.getConfig()['backtest'].daterange;
 
 // let's create our own method
 var method = {};
@@ -28,8 +29,6 @@ method.sell = function (amountAsset) {
 
 // prepare everything our method needs
 method.init = function () {
-  this.balance = this.settings.startBalance;
-  this.asset = this.settings.startAsset;
   this.stopLoss = this.settings.stopLoss;
   this.takeProfit = this.settings.takeProfit;
   this.amountForOneTrade = this.settings.amountForOneTrade;
@@ -39,13 +38,12 @@ method.init = function () {
 }
 
 method.update = function (candle) {
-
-  if (candle.start.isSame(moment.utc("2018-05-01 01:00:00"))) {
-    this.sell();
-  }
-
-  if (!this.startClose) {
-    this.startClose = candle.close;
+  const isLastCandle = candle.start.isSame(moment.utc(daterange.to).subtract(candleSize, 'm'));
+  if (isLastCandle) {
+    this.advice({
+      direction: 'clean'
+    })
+    return;
   }
 
   let advice = this.advices[new Date(candle.start).getTime()];
@@ -54,8 +52,6 @@ method.update = function (candle) {
     this.buy(this.amountForOneTrade, candle.close);
   }
 
-  this.finalClose = candle.close;
-  this.finalTime = candle.start;
 }
 
 method.check = function (candle) {}

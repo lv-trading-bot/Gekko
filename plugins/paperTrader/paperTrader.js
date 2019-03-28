@@ -182,6 +182,9 @@ PaperTrader.prototype.processAdvice = function (advice) {
 
       this.createTrigger(advice);
     }
+  } else if (advice.recommendation === 'clean') {
+    //clean up remaining triggers (DOUBLESTOP_TRIGGER type)
+    this.cleanUpDoubleStopTriggers();
   } else {
     return log.warn(
       `[Papertrader] ignoring unknown advice recommendation: ${advice.recommendation}`
@@ -192,6 +195,7 @@ PaperTrader.prototype.processAdvice = function (advice) {
   if (advice.amount === 0) {
     return;
   }
+
   this.tradeId = 'trade-' + (++this.propogatedTrades);
 
   this.deferredEmit('tradeInitiated', {
@@ -375,6 +379,22 @@ PaperTrader.prototype.onStopTrigger = function () {
   });
 
   delete this.activeStopTrigger;
+}
+
+PaperTrader.prototype.cleanUpDoubleStopTriggers = function () {
+  this.activeDoubleStopTriggers.forEach((trigger) => {
+    trigger.trigger({
+      what: "CLEAN_UP",
+      meta: {
+        initialStart: trigger.initialStart,
+        initialPrice: trigger.initialPrice,
+        trend: (this.price - trigger.initialPrice) * 100 / trigger.initialPrice,
+        expires: trigger.expires,
+        exitPrice: this.price,
+        exitCandle: this.candle
+      }
+    })
+  })
 }
 
 PaperTrader.prototype.processCandle = function (candle, done) {
