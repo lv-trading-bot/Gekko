@@ -29,7 +29,7 @@ const dateRanges = [{
     },
     backtestDaterange: {
       from: "2018-04-15 09:00:00",
-      to: "2018-12-30 01:00:00"
+      to: "2018-05-01 01:00:00"
     }
   },
   // {
@@ -58,7 +58,7 @@ const strategyForBacktest = [{
   }
 }];
 
-const modelName = "random_forest";
+const modelName = process.argv[2] || "random_forest";
 const strategyGetData = {
   name: "writeCandle2Json",
   settings: {
@@ -112,7 +112,7 @@ const main = async () => {
           let trainData = require('./' + trainDataName);
           let testData = require('./' + testDataName);
           console.log("Connect python ...");
-          let result = await sendTrainAndTestDataToPythonServer(trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName);
+          let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName);
           console.log('Connect python done ...')
           if (result) {
             let backtestData = result;
@@ -135,7 +135,7 @@ const main = async () => {
   }
 }
 
-const sendTrainAndTestDataToPythonServer = (trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName) => {
+const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName) => {
   return new Promise((resolve, reject) => {
     // remove vwp from train data
     trainData = _.map(trainData, temp => {
@@ -148,6 +148,7 @@ const sendTrainAndTestDataToPythonServer = (trainData, testData, trainDaterange,
 
     let data = {
       metadata: {
+        market_info: marketInfo,
         train_daterange: {
           from: new Date(trainDaterange.from).getTime(),
           to: new Date(trainDaterange.to).getTime()
