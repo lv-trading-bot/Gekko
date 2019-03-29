@@ -117,7 +117,7 @@ if (mode === 'backtest') {
   Logger.prototype.reportTrigger = function(report) {
 
     let profitableTrades = 0, lossMakingTrades = 0, expiredTrades = 0, 
-    trashs = 0, tradingTrigger = 0, totalProfit = 0, totalProfitTrigger = 0;
+    trashs = 0, runningTriggers = 0, profitWithoutRunningTriggers = 0, profitByRunningTriggers = 0;
 
     for (let i = 0; i < this.roundtrips.length; i++) {
 
@@ -133,10 +133,10 @@ if (mode === 'backtest') {
         trashs++;
       }
 
-      totalProfit += (curRt.meta.exitPrice - curRt.meta.initialPrice) * 100 / curRt.meta.initialPrice;
+      profitWithoutRunningTriggers += (curRt.meta.exitPrice - curRt.meta.initialPrice) * 100 / curRt.meta.initialPrice;
     }
 
-    tradingTrigger = this.triggersManager.length;
+    runningTriggers = this.triggersManager.length;
 
     // Log trading trigger (vì ở đây trigger chỉ xuất hiện sau khi mua nên đồng nghĩa với việc những đồng đang trade)
     log.info();
@@ -153,18 +153,18 @@ if (mode === 'backtest') {
         ((report.endPrice - curTrigger.properties.initialPrice) * 100 / curTrigger.properties.initialPrice).toFixed(2)
       ]
       log.info('(ROUNDTRIP)', display.join('\t'));
-      totalProfitTrigger += (report.endPrice - curTrigger.properties.initialPrice) * 100 / curTrigger.properties.initialPrice;
+      profitByRunningTriggers += (report.endPrice - curTrigger.properties.initialPrice) * 100 / curTrigger.properties.initialPrice;
     }
 
     log.info()
-    log.info("(PROFIT REPORT) Profitable trades: \t\t\t", profitableTrades);
-    log.info("(PROFIT REPORT) Loss making trades: \t\t\t", lossMakingTrades);
+    log.info("(PROFIT REPORT) Profitable Trades: \t\t\t", profitableTrades);
+    log.info("(PROFIT REPORT) Loss-making Trades: \t\t\t", lossMakingTrades);
     log.info("(PROFIT REPORT) Expired Trades: \t\t\t", expiredTrades);
-    log.info("(PROFIT REPORT) Trading Trigger: \t\t\t", tradingTrigger);
+    log.info("(PROFIT REPORT) Running Triggers: \t\t\t", runningTriggers);
     // log.info("(PROFIT REPORT) Trash Trades: \t\t\t", trashs);
-    log.info("(PROFIT REPORT) Total Profit per Trade without trading trigger: \t", totalProfit, "%");
-    log.info("(PROFIT REPORT) Total Profit of trading trigger: \t\t\t", totalProfitTrigger, "%");
-    log.info("(PROFIT REPORT) Sum: \t\t\t\t\t\t\t", totalProfit + totalProfitTrigger, "%");
+    log.info("(PROFIT REPORT) Total Profit per Trade without Running Triggers: \t", profitWithoutRunningTriggers, "%");
+    log.info("(PROFIT REPORT) Total Profit per Trade by Running Triggers: \t\t", profitByRunningTriggers, "%");
+    log.info("(PROFIT REPORT) Total Profit per Trade: \t\t\t\t", profitWithoutRunningTriggers + profitByRunningTriggers, "%");
   }
 
   Logger.prototype.finalize = function (report) {

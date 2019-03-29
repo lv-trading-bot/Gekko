@@ -35,7 +35,7 @@ const PaperTrader = function () {
   this.balance = false;
 
   if (this.portfolio.asset > 0) {
-    this.exposed = true;
+    // this.exposed = true;
   }
 
   this.propogatedTrades = 0;
@@ -113,7 +113,7 @@ PaperTrader.prototype.updatePosition = function (what, amount) {
     this.portfolio.asset += amountWithFee;
     this.portfolio.currency -= amount;
 
-    this.exposed = true;
+    // this.exposed = true;
     this.trades++;
   }
 
@@ -129,7 +129,7 @@ PaperTrader.prototype.updatePosition = function (what, amount) {
     this.portfolio.currency += amountWithFee;
     this.portfolio.asset -= amount;
 
-    this.exposed = false;
+    // this.exposed = false;
     this.trades++;
   }
 
@@ -389,9 +389,12 @@ PaperTrader.prototype.processCandle = function (candle, done) {
     this.relayPortfolioValueChange();
   }
 
-  if (this.exposed) {
-    this.relayPortfolioValueChange();
-  }
+  // if (this.exposed) {
+  //   this.relayPortfolioValueChange();
+  // }
+
+  //relay everytime because now gekko doesn't all-in
+  this.relayPortfolioValueChange();
 
   if (this.activeStopTrigger) {
     this.activeStopTrigger.instance.updatePrice(this.price, this.candle.start);

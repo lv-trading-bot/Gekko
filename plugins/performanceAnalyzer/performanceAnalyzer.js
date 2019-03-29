@@ -54,6 +54,8 @@ PerformanceAnalyzer.prototype.processPortfolioValueChange = function(event) {
   if(!this.start.balance) {
     this.start.balance = event.balance;
   }
+  //porforlio value is re-calculated
+  this.balance = event.balance;
 }
 
 PerformanceAnalyzer.prototype.processPortfolioChange = function(event) {
@@ -94,7 +96,7 @@ PerformanceAnalyzer.prototype.emitRoundtripUpdate = function() {
 PerformanceAnalyzer.prototype.processTradeCompleted = function(trade) {
   this.trades++;
   this.portfolio = trade.portfolio;
-  this.balance = trade.balance;
+  // this.balance = trade.balance;
 
   this.registerRoundtripPart(trade);
 
