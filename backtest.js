@@ -24,12 +24,12 @@ const marketsAndPair = [
 const candleSizes = [60]
 const dateRanges = [{
     trainDaterange: {
-      from: "2018-02-11 21:00:00",
-      to: "2018-03-30 11:00:00"
+      from: "2018-01-13 01:00:00",
+      to: "2018-06-20 01:00:00"
     },
     backtestDaterange: {
-      from: "2018-04-15 09:00:00",
-      to: "2018-05-01 01:00:00"
+      from: "2018-06-21 01:00:00",
+      to: "2018-07-06 01:00:00"
     }
   },
   // {
@@ -45,16 +45,17 @@ const dateRanges = [{
 ]
 
 const strategyForBacktest = [{
-  name: "OMLBCT",
+  name: "OMLBCT_With_StopTrade",
   settings: {
-    // startBalance: 2500,
-    // startAsset: 0,
     stopLoss: -10,
     takeProfit: 2,
-    amountForOneTrade: 100,
-    stopTrade: 24,
+    amountForOneTrade: 2000,
+    expirationPeriod: 24,
     backtest: true,
-    dataFile: "data-for-backtest/backtest-data.json"
+    dataFile: "data-for-backtest/backtest-data.json",
+    stopTradeLimit: -5000,
+    totalWatchCandles: 24,
+    breakDuration: 12
   }
 }];
 
