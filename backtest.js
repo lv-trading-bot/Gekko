@@ -15,7 +15,7 @@ const marketsAndPair = [
   {
     exchange: "binance",
     currency: "USDT",
-    asset: "ETH"
+    asset: "BTC"
   }
 ]
 
@@ -29,7 +29,7 @@ const dateRanges = [{
     },
     backtestDaterange: {
       from: "2018-04-15 09:00:00",
-      to: "2018-05-01 01:00:00"
+      to: "2018-05-02 01:00:00"
     }
   },
   // {
