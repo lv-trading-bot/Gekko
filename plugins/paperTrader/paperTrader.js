@@ -114,7 +114,7 @@ PaperTrader.prototype.updatePosition = function (what, amount) {
     this.portfolio.currency -= amount;
 
     // this.exposed = true;
-    this.trades++;
+    // this.trades++;
   }
 
   // virtually trade all {currency} to {asset}
@@ -123,14 +123,14 @@ PaperTrader.prototype.updatePosition = function (what, amount) {
     // amount: asset
     // amountWithFee: currency
     // Nếu không có amount thì chuyển về all-in
-    amount = amount !== undefined ? amount : (this.portfolio.currency / this.price);
+    amount = amount !== undefined ? amount : (this.portfolio.asset);
     amountWithFee = this.extractFee(amount * this.price);
     cost = (1 - this.fee) * (amount * this.price);
     this.portfolio.currency += amountWithFee;
     this.portfolio.asset -= amount;
 
     // this.exposed = false;
-    this.trades++;
+    // this.trades++;
   }
 
   const effectivePrice = this.price * this.fee;
@@ -152,7 +152,7 @@ PaperTrader.prototype.now = function () {
 }
 
 PaperTrader.prototype.processAdvice = function (advice) {
-  if (!this.isValidAdvice(advice)) return;
+  if (!this.isValidAdvice(advice) && advice.amount !== undefined) return;
   let action;
   if (advice.recommendation === 'short') {
     action = 'sell';
