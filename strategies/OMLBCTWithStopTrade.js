@@ -49,24 +49,37 @@ method.updateStateTrade = function(candle) {
   if(this.totalWatchCandlesManager.length > this.totalWatchCandles) {
     this.totalWatchCandlesManager.splice(0, this.totalWatchCandles - this.totalWatchCandlesManager.length);
   }
+
+  // Xóa những candle đã bán
+  this.totalWatchCandlesManager = _.filter(this.totalWatchCandlesManager, curCandle => {
+    let profit = (candle.close - curCandle.close) * 100 / curCandle.close;
+    if(profit <= this.stopLoss || profit >= this.takeProfit) {
+      return false;
+    } else {
+      return true;
+    }
+  })
+
   // Tính lời lỗ
   let totalProfit = 0;
   for(let i = 0; i < this.totalWatchCandlesManager.length; i++) {
     let curCandle = this.totalWatchCandlesManager[i];
-    totalProfit += (candle.close - curCandle.close) * 100 / curCandle.close;
+    // Tìm thấy những cây bán rồi thì loại ra
+    let profit = (candle.close - curCandle.close) * 100 / curCandle.close;
+    totalProfit += profit;
   }
 
   //Xét xem vượt ngưỡng thì đặt thời gian dừng
   if(totalProfit <= this.stopTradeLimit) {
     this.isAllowTrade = false;
     this.deadLineAllowTradeAgain = candle.start.clone().add(this.breakDuration * candleSize, "m");
+    // reset
+    this.totalWatchCandlesManager = [];
   }
 
   // Cập nhật lại biến isAllowTrade khi hết thời gian chờ
   if(!this.isAllowTrade && candle.start.isAfter(this.deadLineAllowTradeAgain)) {
     this.isAllowTrade = true;
-    // reset
-    this.totalWatchCandlesManager = [];
   }
 }
 

@@ -45,7 +45,7 @@ const dateRanges = [{
 ]
 
 const strategyForBacktest = [{
-  name: "OMLBCT_With_StopTrade",
+  name: "OMLBCTWithStopTrade",
   settings: {
     stopLoss: -10,
     takeProfit: 2,
@@ -55,7 +55,7 @@ const strategyForBacktest = [{
     dataFile: "data-for-backtest/backtest-data.json",
     stopTradeLimit: -5000,
     totalWatchCandles: 24,
-    breakDuration: 12
+    breakDuration: 0
   }
 }];
 

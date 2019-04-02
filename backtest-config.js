@@ -48,5 +48,5 @@ config['talib-macd'] = {"parameters":{"optInFastPeriod":10,"optInSlowPeriod":21,
 config['tulip-adx'] = {"optInTimePeriod":10,"thresholds":{"down":-0.025,"up":0.025},"enable":false};
 config['I understand that Gekko only automates MY OWN trading strategies'] = false;
 config['writeCandle2Json'] = {"fileName":"data-for-backtest/test_binance_BTC_USDT_OMLBCT_With_StopTrade_60_21-06-18_06-07-18.json","stopTrade":24,"stopLoss":-10,"takeProfit":2};
-config['OMLBCT_With_StopTrade'] = {"stopLoss":-10,"takeProfit":2,"amountForOneTrade":2000,"expirationPeriod":24,"backtest":true,"dataFile":"data-for-backtest/backtest-data.json","stopTradeLimit":-5000,"totalWatchCandles":24,"breakDuration":12};
+config['OMLBCT_With_StopTrade'] = {"stopLoss":-10,"takeProfit":2,"amountForOneTrade":2000,"expirationPeriod":24,"backtest":true,"dataFile":"data-for-backtest/backtest-data.json","stopTradeLimit":-5000,"totalWatchCandles":24,"breakDuration":0};
 module.exports = config;
