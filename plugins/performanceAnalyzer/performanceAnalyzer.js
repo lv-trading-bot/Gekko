@@ -27,7 +27,9 @@ const PerformanceAnalyzer = function() {
   this.currency = watchConfig.currency;
   this.asset = watchConfig.asset;
 
-  this.logger = new Logger(watchConfig);
+  this.roundTripReportMode = perfConfig.roundTripReportMode; // DEFAULT || BY_DOUBLESTOP_TRIGGER
+
+  this.logger = new Logger(watchConfig, this.roundTripReportMode);
 
   this.trades = 0;
 
@@ -52,6 +54,8 @@ PerformanceAnalyzer.prototype.processPortfolioValueChange = function(event) {
   if(!this.start.balance) {
     this.start.balance = event.balance;
   }
+  //porforlio value is re-calculated
+  this.balance = event.balance;
 }
 
 PerformanceAnalyzer.prototype.processPortfolioChange = function(event) {
@@ -92,7 +96,7 @@ PerformanceAnalyzer.prototype.emitRoundtripUpdate = function() {
 PerformanceAnalyzer.prototype.processTradeCompleted = function(trade) {
   this.trades++;
   this.portfolio = trade.portfolio;
-  this.balance = trade.balance;
+  // this.balance = trade.balance;
 
   this.registerRoundtripPart(trade);
 
@@ -101,6 +105,15 @@ PerformanceAnalyzer.prototype.processTradeCompleted = function(trade) {
     this.logger.handleTrade(trade, report);
     this.deferredEmit('performanceReport', report);
   }
+}
+
+PerformanceAnalyzer.prototype.processTriggerFired = function(roundTrip) {
+  this.logger.handleRoundtrip(roundTrip, "BY_DOUBLESTOP_TRIGGER");
+  this.logger.handleTriggerFired(roundTrip);
+}
+
+PerformanceAnalyzer.prototype.processTriggerCreated = function(trigger) {
+  this.logger.handleTriggerCreated(trigger);
 }
 
 PerformanceAnalyzer.prototype.registerRoundtripPart = function(trade) {
@@ -153,7 +166,7 @@ PerformanceAnalyzer.prototype.handleCompletedRoundtrip = function() {
 
   this.roundTrips[this.roundTrip.id] = roundtrip;
 
-  this.logger.handleRoundtrip(roundtrip);
+  this.logger.handleRoundtrip(roundtrip, "DEFAULT");
 
   this.deferredEmit('roundtrip', roundtrip);
 
@@ -191,6 +204,7 @@ PerformanceAnalyzer.prototype.calculateReportStatistics = function() {
     * Math.sqrt(this.trades / (this.trades - 2));
 
   const report = {
+    momentEndTime: moment(_.cloneDeep(this.dates.end)),
     startTime: this.dates.start.utc().format('YYYY-MM-DD HH:mm:ss'),
     endTime: this.dates.end.utc().format('YYYY-MM-DD HH:mm:ss'),
     timespan: timespan.humanize(),

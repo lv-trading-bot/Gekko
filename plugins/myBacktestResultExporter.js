@@ -141,7 +141,14 @@ MyBacktestResultReporter.prototype.finalize = function(done) {
 
 MyBacktestResultReporter.prototype.writeToDisk = function(backtest, next) {
   this.backtest = backtest;
-  const filename = `${config.myBacktestResultExporter.fileNamePrefix}${this.backtest.market.exchange}-${this.backtest.market.asset}-${this.backtest.market.currency}.csv`;
+  let filename = [
+    config.myBacktestResultExporter.fileNamePrefix,
+    this.backtest.market.exchange,
+    this.backtest.market.asset,
+    this.backtest.market.currency,
+    this.candleSize
+  ].join('-')
+  filename = `${filename}.csv`;
   const filePath = util.dirs().gekko + filename;
   fs.readFile(filePath, (err, data) => {
     let dataOut = config.myBacktestResultExporter.dataOut;
@@ -175,10 +182,10 @@ MyBacktestResultReporter.prototype.writeToDisk = function(backtest, next) {
       }
       strData += '\n';
       strData = mergeData(strData);
-      fs.writeFile(filePath, strData);
+      fs.writeFileSync(filePath, strData);
     } else {
       strData = mergeData(data.toString());
-      fs.writeFile(filePath, strData);
+      fs.writeFileSync(filePath, strData);
     }
   })
 }

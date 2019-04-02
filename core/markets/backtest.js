@@ -54,7 +54,7 @@ Market.prototype._read = _.once(function() {
 
 Market.prototype.get = function() {
   if(this.iterator.to >= to) {
-    this.iterator.to = to;
+    this.iterator.to = to.clone().subtract(1, 'm'); //last candle is 1 minute before end time
     this.ended = true;
   }
 

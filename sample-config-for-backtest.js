@@ -32,13 +32,22 @@ config.watch = {
 
 config.tradingAdvisor = {
   enabled: true,
-  method: 'MACD',
+  method: 'OMLBCT',
   candleSize: 60,
-  historySize: 10,
+  historySize: 0,
 }
 
-// MACD settings:
-config.MACD = {
+config.OMLBCT = {
+  startBalance: 2500,
+  startAsset: 0,
+  stopLoss: -2,
+  takeProfit: 4,
+  amountForOneTrade: 100,
+  stopTrade: 24,
+  backtest: true
+}
+
+config['writeCandle2Csv'] = {
   // EMA weight (α)
   // the higher the weight, the more smooth (and delayed) the line
   short: 10,
@@ -50,8 +59,69 @@ config.MACD = {
     up: 0.025,
     // How many candle intervals should a trend persist
     // before we consider it real?
+    persistence: 1,
+    low: 30,
+    high: 70,
+  },
+  interval: 14,
+  fileName: "BTC_USDT_RSI_MACD.csv"
+}
+
+config['LSTM'] = {
+  // EMA weight (α)
+  // the higher the weight, the more smooth (and delayed) the line
+  short: 10,
+  long: 21,
+  signal: 9,
+  // the difference between the EMAs (to act as triggers)
+  thresholds: {
+    down: -0.025,
+    up: 0.025,
+    // How many candle intervals should a trend persist
+    // before we consider it real?
+    persistence: 1,
+    low: 30,
+    high: 70,
+  },
+  interval: 14,
+  api: "http://127.0.0.1:5000/advice"
+}
+
+// MACD settings:
+config.MACD = {
+  // EMA weight (α)
+  // the higher the weight, the more smooth (and delayed) the line
+  short: 12,
+  long: 26,
+  signal: 9,
+  // the difference between the EMAs (to act as triggers)
+  thresholds: {
+    down: -0.025,
+    up: 0.025,
+    // How many candle intervals should a trend persist
+    // before we consider it real?
     persistence: 1
   }
+};
+
+// RSI-MACD settings:
+config['RSI-MACD'] = {
+  // EMA weight (α)
+  // the higher the weight, the more smooth (and delayed) the line
+  short: 10,
+  long: 21,
+  signal: 9,
+  // the difference between the EMAs (to act as triggers)
+  thresholds: {
+    down: -0.025,
+    up: 0.025,
+    // How many candle intervals should a trend persist
+    // before we consider it real?
+    persistence: 1,
+    low: 30,
+    high: 70,
+  },
+  interval: 14
 };
 
 // settings for other strategies can be found at the bottom, note that only
@@ -64,6 +134,24 @@ config.MACD = {
 // do you want Gekko to simulate the profit of the strategy's own advice?
 config.paperTrader = {
   enabled: true,
+  // report the profit in the currency or the asset?
+  reportInCurrency: true,
+  // start balance, on what the current balance is compared with
+  simulationBalance: {
+    // these are in the unit types configured in the watcher.
+    asset: 0,
+    currency: 5000,
+  },
+  // how much fee in % does each trade cost?
+  feeMaker: 0,
+  feeTaker: 0,
+  feeUsing: 'maker',
+  // how much slippage/spread should Gekko assume per trade?
+  slippage: 0,
+}
+
+config.multiPaperTrader = {
+  enabled: false,
   // report the profit in the currency or the asset?
   reportInCurrency: true,
   // start balance, on what the current balance is compared with
@@ -82,6 +170,12 @@ config.paperTrader = {
 
 config.performanceAnalyzer = {
   enabled: true,
+  riskFreeReturn: 5,
+  roundTripReportMode: "BY_DOUBLESTOP_TRIGGER"//"BY_DOUBLESTOP_TRIGGER" // DEFAULT
+}
+
+config.multiPerformanceAnalyzer = {
+  enabled: false,
   riskFreeReturn: 5
 }
 
@@ -271,7 +365,7 @@ config.adviceWriter = {
 
 config.backtestResultExporter = {
   enabled: false,
-  writeToDisk: false,
+  writeToDisk: true,
   data: {
     stratUpdates: false,
     portfolioValues: true,
@@ -282,7 +376,7 @@ config.backtestResultExporter = {
 }
 
 config.myBacktestResultExporter = {
-  enabled: true,
+  enabled: false,
   writeToDisk: true,
   data: {
     stratUpdates: true,
@@ -312,8 +406,8 @@ config.myBacktestResultExporter = {
       "End time": `moment(get(this, "dates.end","")).format('YYYY-MM-DD HH:mm:ss')`,
       "Buy": `_.filter(this.trades, trade => trade.action == "buy").length`,
       "Sell": `_.filter(this.trades, trade => trade.action == "sell").length`,
-      "market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
-      "profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
+      "Market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
+      "Profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
     }
    }
   }
@@ -368,11 +462,19 @@ config.mongodb = {
 // @link: https://gekko.wizb.it/docs/commandline/backtesting.html
 
 config.backtest = {
-  daterange: 'scan',
+  // daterange: 'scan',
 // daterange: {
-//   from: "2018-03-01",
-//   to: "2018-04-28"
-//},
+//   from: "2019-01-01 00:00:00",
+//   to: "2019-01-31 23:59:59"
+// },
+  daterange: {
+    from: "2019-02-14 01:00:00",
+    to: "2019-02-24 23:00:00"
+  },
+  // daterange: {
+  //   from: "2019-02-25 23:00:00",
+  //   to: "2019-03-11 02:00:00"
+  // },
   batchSize: 50
 }
 
@@ -383,8 +485,8 @@ config.backtest = {
 config.importer = {
   daterange: {
     // NOTE: these dates are in UTC
-    from: "2017-11-01 00:00:00",
-    to: "2017-11-20 00:00:00"
+    from: "2019-02-20 00:00:00",
+    to: "2019-03-13 00:00:00"
   }
 }
 
