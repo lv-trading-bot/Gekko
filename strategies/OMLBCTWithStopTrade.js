@@ -47,13 +47,27 @@ method.init = function () {
 method.updateStateTrade = function(candle) {
   //Xét xem vượt ngưỡng thì đặt thời gian dừng
   if(this.totalProfit <= this.stopTradeLimit) {
+    let message = ["\n"];
+    message.push("*************************************************************************************");
+    message.push("Hiện tại hệ thống đã dừng trade!");
+    message.push(`Hiện tại đã lỗ ${this.totalProfit.toFixed(2)}%`);
+    message.push("Trong khoảng thời gian dừng trade, hệ thống sẽ bán các lệnh đã mua như thường lệ!");
+
     this.isAllowTrade = false;
+
     if(this.breakDuration === -1) {
       this.deadLineAllowTradeAgain = null;
     } else {
       this.deadLineAllowTradeAgain = candle.start.clone().add(this.breakDuration * candleSize, "m");
+      message.push(`Hệ thống sẽ bắt đầu trade lại vào lúc ${this.deadLineAllowTradeAgain.utc().format('YYYY-MM-DD HH:mm')}`);
     }
     // cập nhật để "if" phía trên không bị gọi lại
+    this.totalProfit = 0;
+    message.push("*************************************************************************************");
+    this.notify(message.join("\n\t"));
+    log.info(message.join("\n\t"));
+  } else if (this.totalProfit > 0) {
+    //Bỏ những lần trade dương đi, khi nào lỗ mới dừng
     this.totalProfit = 0;
   }
 
@@ -66,6 +80,9 @@ method.updateStateTrade = function(candle) {
 }
 
 method.update = function (candle) {
+
+  this.updateStateTrade(candle);
+
   if (!this.startClose) {
     this.startClose = candle.close;
   }
@@ -78,8 +95,6 @@ method.update = function (candle) {
 
   this.finalClose = candle.close;
   this.finalTime = candle.start;
-  
-  this.updateStateTrade(candle);
 }
 
 method.check = function (candle) {}
