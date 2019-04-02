@@ -1,7 +1,7 @@
 var config = {}; 
 config['debug'] = true;
 config['watch'] = {"exchange":"binance","currency":"USDT","asset":"BTC"};
-config['tradingAdvisor'] = {"enabled":true,"method":"OMLBCT_With_StopTrade","candleSize":60,"historySize":0,"enable":true};
+config['tradingAdvisor'] = {"enabled":true,"method":"OMLBCTWithStopTrade","candleSize":60,"historySize":0,"enable":true};
 config['OMLBCT'] = {"startBalance":2500,"startAsset":0,"stopLoss":-2,"takeProfit":4,"amountForOneTrade":100,"stopTrade":24,"backtest":true,"enable":false};
 config['writeCandle2Csv'] = {"short":10,"long":21,"signal":9,"thresholds":{"down":-0.025,"up":0.025,"persistence":1,"low":30,"high":70},"interval":14,"fileName":"BTC_USDT_RSI_MACD.csv","enable":false};
 config['LSTM'] = {"short":10,"long":21,"signal":9,"thresholds":{"down":-0.025,"up":0.025,"persistence":1,"low":30,"high":70},"interval":14,"api":"http://127.0.0.1:5000/advice","enable":false};
@@ -47,6 +47,6 @@ config['custom'] = {"my_custom_setting":10,"enable":false};
 config['talib-macd'] = {"parameters":{"optInFastPeriod":10,"optInSlowPeriod":21,"optInSignalPeriod":9},"thresholds":{"down":-0.025,"up":0.025},"enable":false};
 config['tulip-adx'] = {"optInTimePeriod":10,"thresholds":{"down":-0.025,"up":0.025},"enable":false};
 config['I understand that Gekko only automates MY OWN trading strategies'] = false;
-config['writeCandle2Json'] = {"fileName":"data-for-backtest/test_binance_BTC_USDT_OMLBCT_With_StopTrade_60_21-06-18_06-07-18.json","stopTrade":24,"stopLoss":-10,"takeProfit":2};
-config['OMLBCT_With_StopTrade'] = {"stopLoss":-10,"takeProfit":2,"amountForOneTrade":2000,"expirationPeriod":24,"backtest":true,"dataFile":"data-for-backtest/backtest-data.json","stopTradeLimit":-5000,"totalWatchCandles":24,"breakDuration":0};
+config['writeCandle2Json'] = {"fileName":"data-for-backtest/test_binance_BTC_USDT_OMLBCTWithStopTrade_60_21-06-18_06-07-18.json","stopTrade":24,"stopLoss":-10,"takeProfit":2};
+config['OMLBCTWithStopTrade'] = {"stopLoss":-10,"takeProfit":2,"amountForOneTrade":2000,"expirationPeriod":24,"backtest":true,"dataFile":"data-for-backtest/backtest-data.json","stopTradeLimit":-100,"breakDuration":-1};
 module.exports = config;

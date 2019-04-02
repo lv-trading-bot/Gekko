@@ -34,53 +34,63 @@ method.init = function () {
   this.expirationPeriod = this.settings.expirationPeriod;
 
   this.stopTradeLimit = this.settings.stopTradeLimit;
-  this.totalWatchCandles = this.settings.totalWatchCandles;
+  // this.totalWatchCandles = this.settings.totalWatchCandles;
   this.breakDuration = this.settings.breakDuration;
-  this.totalWatchCandlesManager = [];
+  // this.totalWatchCandlesManager = [];
 
   this.advices = require("../" + this.settings.dataFile);
 
   this.isAllowTrade = true;
   this.deadLineAllowTradeAgain = null;
+
+  this.totalProfit = 0;
 }
 
 method.updateStateTrade = function(candle) {
-  //Nếu số lượng candle theo dõi vượt lượng cần theo dõi thì xóa bớt những thằng đầu
-  if(this.totalWatchCandlesManager.length > this.totalWatchCandles) {
-    this.totalWatchCandlesManager.splice(0, this.totalWatchCandles - this.totalWatchCandlesManager.length);
-  }
+  // //Nếu số lượng candle theo dõi vượt lượng cần theo dõi thì xóa bớt những thằng đầu
+  // if(this.totalWatchCandlesManager.length > this.totalWatchCandles) {
+  //   this.totalWatchCandlesManager.splice(0, this.totalWatchCandles - this.totalWatchCandlesManager.length);
+  // }
 
-  // Xóa những candle đã bán
-  this.totalWatchCandlesManager = _.filter(this.totalWatchCandlesManager, curCandle => {
-    let profit = (candle.close - curCandle.close) * 100 / curCandle.close;
-    if(profit <= this.stopLoss || profit >= this.takeProfit) {
-      return false;
-    } else {
-      return true;
-    }
-  })
+  // // Xóa những candle đã bán
+  // this.totalWatchCandlesManager = _.filter(this.totalWatchCandlesManager, curCandle => {
+  //   let profit = (candle.close - curCandle.close) * 100 / curCandle.close;
+  //   if(profit <= this.stopLoss || profit >= this.takeProfit) {
+  //     return false;
+  //   } else {
+  //     return true;
+  //   }
+  // })
 
-  // Tính lời lỗ
-  let totalProfit = 0;
-  for(let i = 0; i < this.totalWatchCandlesManager.length; i++) {
-    let curCandle = this.totalWatchCandlesManager[i];
-    // Tìm thấy những cây bán rồi thì loại ra
-    let profit = (candle.close - curCandle.close) * 100 / curCandle.close;
-    totalProfit += profit;
-  }
+  // // Tính lời lỗ
+  // let totalProfit = 0;
+  // for(let i = 0; i < this.totalWatchCandlesManager.length; i++) {
+  //   let curCandle = this.totalWatchCandlesManager[i];
+  //   // Tìm thấy những cây bán rồi thì loại ra
+  //   let profit = (candle.close - curCandle.close) * 100 / curCandle.close;
+  //   totalProfit += profit;
+  // }
+
+  /*******************************************************************/
 
   //Xét xem vượt ngưỡng thì đặt thời gian dừng
-  if(totalProfit <= this.stopTradeLimit) {
+  if(this.totalProfit <= this.stopTradeLimit) {
+    this.notify({})
     this.isAllowTrade = false;
-    this.deadLineAllowTradeAgain = candle.start.clone().add(this.breakDuration * candleSize, "m");
-    // reset
-    this.totalWatchCandlesManager = [];
+    if(this.breakDuration === -1) {
+      this.deadLineAllowTradeAgain = null;
+    } else {
+      this.deadLineAllowTradeAgain = candle.start.clone().add(this.breakDuration * candleSize, "m");
+    }
+    this.totalProfit = 0;
   }
 
   // Cập nhật lại biến isAllowTrade khi hết thời gian chờ
-  if(!this.isAllowTrade && candle.start.isAfter(this.deadLineAllowTradeAgain)) {
+  if(this.deadLineAllowTradeAgain!= null && !this.isAllowTrade && candle.start.isAfter(this.deadLineAllowTradeAgain)) {
     this.isAllowTrade = true;
+    this.totalProfit = 0;
   }
+  /******************************************************************/
 }
 
 method.update = function (candle) {
@@ -92,7 +102,7 @@ method.update = function (candle) {
 
   if (advice == 1 && this.isAllowTrade) {
     this.buy(this.amountForOneTrade, candle.close);
-    this.totalWatchCandlesManager.push(candle);
+    // this.totalWatchCandlesManager.push(candle);
   }
 
   this.finalClose = candle.close;
@@ -125,6 +135,11 @@ method.onTrade = function (trade) {
   } else if (trade.action === 'sell') {
 
   }
+}
+
+method.onTriggerFired = function(trigger) {
+  let profit = (trigger.meta.exitPrice - trigger.meta.initialPrice) * 100 / trigger.meta.initialPrice;
+  this.totalProfit += profit;
 }
 
 const caclDistance2Dates = (date1, date2) => {

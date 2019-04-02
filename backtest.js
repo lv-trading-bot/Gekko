@@ -53,9 +53,9 @@ const strategyForBacktest = [{
     expirationPeriod: 24,
     backtest: true,
     dataFile: "data-for-backtest/backtest-data.json",
-    stopTradeLimit: -5000,
-    totalWatchCandles: 24,
-    breakDuration: 0
+    stopTradeLimit: -100,
+    // totalWatchCandles: 24,
+    breakDuration: -1
   }
 }];
 
