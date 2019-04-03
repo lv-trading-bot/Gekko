@@ -15,6 +15,7 @@ class DoubleStop extends EventEmitter {
     adviceId,
     initialStart,
     initialPrice,
+    currentInitialPrice,
     assetAmount,
     stopLoss,
     takeProfit,
@@ -32,6 +33,7 @@ class DoubleStop extends EventEmitter {
     this.expires = expires;
     this.assetAmount = assetAmount;
     this.onTrigger = onTrigger;
+    this.currentInitialPrice = currentInitialPrice;
 
     this.isLive = true;
   }
@@ -41,10 +43,10 @@ class DoubleStop extends EventEmitter {
       return;
     }
 
-    const upTrend = (candle.high - this.initialPrice) * 100 / Math.abs(this.initialPrice);
-    const downTrend = (candle.low - this.initialPrice) * 100 / Math.abs(this.initialPrice);
+    const upTrend = (candle.high - this.currentInitialPrice) * 100 / Math.abs(this.currentInitialPrice);
+    const downTrend = (candle.low - this.currentInitialPrice) * 100 / Math.abs(this.currentInitialPrice);
     //trend at close
-    const trend = (candle.close - this.initialPrice) * 100 / Math.abs(this.initialPrice);
+    const trend = (candle.close - this.currentInitialPrice) * 100 / Math.abs(this.currentInitialPrice);
 
     if (downTrend <= this.stopLoss || upTrend >= this.takeProfit) {
       this.trigger({

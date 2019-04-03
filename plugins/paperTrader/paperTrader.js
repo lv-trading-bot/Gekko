@@ -262,40 +262,67 @@ PaperTrader.prototype.createTrigger = function (advice) {
       })
     }
   } else if (trigger && trigger.type === 'doubleStop') {
-
-    if (!trigger.stopLoss || !trigger.takeProfit || trigger.assetAmount < 0) {
+    if (!trigger.id && (!trigger.stopLoss || !trigger.takeProfit || trigger.assetAmount < 0)) {
       return log.warn(`[Papertrader] Please provide correct arguments for doubleStop trigger: (stopLoss, takeProfit, assetAmount)=(${trigger.stopLoss}, ${trigger.takeProfit}, ${trigger.assetAmount})`);
     }
 
-    const triggerId = 'trigger-' + (++this.propogatedTriggers);
+    if(!trigger.id) {
+      const triggerId = 'trigger-' + (++this.propogatedTriggers);
 
-    this.deferredEmit('triggerCreated', {
-      id: triggerId,
-      at: advice.date,
-      type: 'doubleStop',
-      properties: {
-        initialStart: trigger.initialStart,
-        initialPrice: trigger.initialPrice,
-        stopLoss: trigger.stopLoss,
-        takeProfit: trigger.takeProfit,
-        expires: moment(trigger.expires),
-        assetAmount: trigger.assetAmount
-      }
-    });
-
-    this.activeDoubleStopTriggers.push(
-      new DoubleStop({
+      this.deferredEmit('triggerCreated', {
         id: triggerId,
-        adviceId: advice.id,
-        initialStart: trigger.initialStart,
-        initialPrice: trigger.initialPrice,
-        stopLoss: trigger.stopLoss,
-        takeProfit: trigger.takeProfit,
-        expires: moment(trigger.expires),
-        assetAmount: trigger.assetAmount,
-        onTrigger: this.onDoubleStopTrigger
-      })
-    )
+        at: advice.date,
+        type: 'doubleStop',
+        properties: {
+          initialStart: trigger.initialStart,
+          initialPrice: trigger.initialPrice,
+          currentInitialPrice: trigger.currentInitialPrice,
+          stopLoss: trigger.stopLoss,
+          takeProfit: trigger.takeProfit,
+          expires: moment(trigger.expires),
+          assetAmount: trigger.assetAmount
+        }
+      });
+
+      this.activeDoubleStopTriggers.push(
+        new DoubleStop({
+          id: triggerId,
+          adviceId: advice.id,
+          initialStart: trigger.initialStart,
+          initialPrice: trigger.initialPrice,
+          currentInitialPrice: trigger.currentInitialPrice,
+          stopLoss: trigger.stopLoss,
+          takeProfit: trigger.takeProfit,
+          expires: moment(trigger.expires),
+          assetAmount: trigger.assetAmount,
+          onTrigger: this.onDoubleStopTrigger
+        })
+      )
+    } else if(trigger.id) {
+      // update trigger
+      for(let i = 0 ; i < this.activeDoubleStopTriggers.length; i++) {
+        let curTrigger = this.activeDoubleStopTriggers[i];
+        if(curTrigger.id === trigger.id) {
+          curTrigger.expires = trigger.expires;
+          curTrigger.currentInitialPrice = trigger.currentInitialPrice;
+          this.deferredEmit('triggerUpdated', {
+            id: curTrigger.id,
+            at: curTrigger.initialStart,
+            type: 'doubleStop',
+            properties: {
+              initialStart: curTrigger.initialStart,
+              initialPrice: curTrigger.initialPrice,
+              currentInitialPrice: curTrigger.currentInitialPrice,
+              stopLoss: curTrigger.stopLoss,
+              takeProfit: curTrigger.takeProfit,
+              expires: moment(curTrigger.expires),
+              assetAmount: curTrigger.assetAmount
+            }
+          });
+          break;
+        }
+      }
+    }
   } else {
     log.warn(`[Papertrader] Gekko does not know trigger with type "${trigger.type}".. Ignoring stop.`);
   }
