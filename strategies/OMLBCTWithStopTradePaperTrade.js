@@ -12,7 +12,7 @@ var method = {};
 method.buy = function (amountDollar, candle) {
   // Tìm xem có trigger nào sắp hết hạn không
   let triggerExpireSoons = _.filter(this.triggerManagers, trigger => {
-    if(candle.start.clone().add(1.5 * candleSize, 'm').isAfter(trigger.properties.expires)) {
+    if(candle.start.clone().add(1.5*candleSize, 'm').isAfter(trigger.properties.expires)) {
       return true;
     }
     return false;
@@ -76,6 +76,14 @@ method.updateTrigger = function(trigger, price, start) {
   })
 }
 
+method.getAdvice = function(candle) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve(1);
+    }, 2000);
+  })
+}
+
 // prepare everything our method needs
 method.init = function () {
   this.stopLoss = this.settings.stopLoss;
@@ -86,7 +94,7 @@ method.init = function () {
   this.stopTradeLimit = this.settings.stopTradeLimit;
   this.breakDuration = this.settings.breakDuration;
 
-  this.advices = require("../" + this.settings.dataFile);
+  // this.advices = require("../" + this.settings.dataFile);
 
   this.isAllowTrade = true;
   this.deadLineAllowTradeAgain = null;
@@ -131,7 +139,7 @@ method.updateStateTrade = function(candle) {
   }
 }
 
-method.update = function (candle) {
+method.check = async function (candle) {
 
   this.updateStateTrade(candle);
 
@@ -139,7 +147,11 @@ method.update = function (candle) {
     this.startClose = candle.close;
   }
 
-  let advice = this.advices[new Date(candle.start).getTime()];
+  let advice = await this.getAdvice(candle);
+  // let advice = 1;
+
+  log.debug('advice', advice);
+  log.debug(candle)
 
   if (advice == 1 && this.isAllowTrade) {
     this.buy(this.amountForOneTrade, candle);
@@ -149,7 +161,7 @@ method.update = function (candle) {
   this.finalTime = candle.start;
 }
 
-method.check = function (candle) {}
+// method.check = function (candle) {}
 
 //completed trades
 method.onTrade = function (trade) {

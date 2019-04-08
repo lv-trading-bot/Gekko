@@ -7,9 +7,16 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Backtest",
             "program": "${workspaceFolder}\\gekko",
-            "args": ["-c", "backtest-config.js", "-b"]
-        }
+            "args": ["-c", "config-backtest.js", "-b"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Paper trading",
+            "program": "${workspaceFolder}\\gekko",
+            "args": ["-c", "tin-config-paper-trading.js"]
+        },
     ]
 }
