@@ -28,7 +28,12 @@ If Gekko helped you in any way, you can always leave me a tip at (BTC) 13r1jyivi
 
 
 ## Run brute force Backtest
-- Edit file backtest.js
+### Edit file backtest.js
+1. Edit `marketsAndPair`
+2. Edit `candleSizes`
+3. Edit `dateRanges`
+4. Edit `strategyForBacktest`: `name`: Name Strategy, `settings`: Setting for Strategy
+### Run
 ```
 node backtest.js
 ```
