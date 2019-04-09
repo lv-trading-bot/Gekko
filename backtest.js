@@ -21,10 +21,10 @@ const marketsAndPair = [
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
-const candleSizes = [60]
+const candleSizes = [1]
 const dateRanges = [{
     trainDaterange: {
-      from: "2018-12-01 01:00:00",
+      from: "2019-03-01 01:00:00",
       to: "2019-04-03 01:00:00"
     },
     backtestDaterange: {

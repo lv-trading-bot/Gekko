@@ -212,9 +212,11 @@ if (mode === 'backtest') {
 } else if (mode === 'realtime') {
   Logger.prototype.handleTrade = Logger.prototype.logReport;
 
-  Logger.prototype.handleRoundtrip = function (rt) {
-    this.logRoundtripHeading();
-    this.logRoundtrip(rt);
+  Logger.prototype.handleRoundtrip = function (rt, roundTripReportMode) {
+    if (this.roundTripReportMode === roundTripReportMode) {
+      this.logRoundtripHeading();
+      this.logRoundtrip(rt);
+    }
   }
 
 }

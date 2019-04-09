@@ -3,9 +3,12 @@ var _ = require('lodash');
 var log = require('../core/log');
 // const axios = require('axios');
 const moment = require('moment');
+const axios = require('axios');
 var utils = require('../core/util');
 let candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
-
+let marketInfo = utils.getConfig().watch;
+let modelName = "random_forest";
+const api = "http://localhost:5000/backtest";
 // let's create our own method
 var method = {};
 
@@ -76,11 +79,47 @@ method.updateTrigger = function(trigger, price, start) {
   })
 }
 
-method.getAdvice = function(candle) {
+method.getAdvice = function(_candle) {
   return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve(1);
-    }, 2000);
+    let candle = _.cloneDeep(_candle);
+    // remove vwp from train data
+    let trainData = _.map(this.trainData, temp => {
+      return _.omit(temp, ['vwp']);
+    })
+    // remove action & vwp from test data
+    testData = _.map([candle], temp => {
+      temp.start = moment(temp.start).unix()*1000;
+      return _.omit(temp, ['action', 'vwp'])
+    })
+
+    let data = {
+      metadata: {
+        market_info: marketInfo,
+        train_daterange: {
+          from: new Date(this.trainDaterange.from).getTime(),
+          to: new Date(this.trainDaterange.to).getTime()
+        },
+        backtest_daterange: {
+          from: moment(candle.start).unix()*1000,
+          to: moment(candle.start).clone().add(candleSize, 'm').unix()*1000
+        },
+        candle_size: candleSize,
+        model_name: modelName
+      },
+      train_data: this.isSendDataTrain ? [] : trainData,
+      backtest_data: testData
+    }
+    this.isSendDataTrain = true;
+    axios.post(api, data)
+      .then(function (response) {
+        //handle
+        let result = response.data[moment(candle.start).unix()*1000];
+        resolve(result)
+      })
+      .catch(function (error) {
+        console.log(error + "");
+        resolve(0);
+      });
   })
 }
 
@@ -102,6 +141,14 @@ method.init = function () {
   this.totalProfit = 0;
 
   this.triggerManagers = [];
+
+  this.isSendDataTrain = false;
+
+  this.trainData = require('../data-for-backtest/train_binance_ETH_USDT_OMLBCTWithStopTrade_1_01-03-19_03-04-19.json');
+  this.trainDaterange = {
+    from: "2019-03-01 01:00:00",
+    to: "2019-04-03 01:00:00"
+  }
 }
 
 method.updateStateTrade = function(candle) {
