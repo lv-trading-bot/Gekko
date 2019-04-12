@@ -6,30 +6,29 @@ const {
 const moment = require('moment');
 const axios = require('axios');
 
-const marketsAndPair = [
-  // {
-  // 	exchange: "binance",
-  // 	currency: "USDT",
-  // 	asset: "BTC"
-  // },
-  {
+const marketsAndPair = [{
     exchange: "binance",
     currency: "USDT",
-    asset: "ETH"
-  }
+    asset: "BTC"
+  },
+  // {
+  //   exchange: "binance",
+  //   currency: "USDT",
+  //   asset: "ETH"
+  // }
 ]
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
-const candleSizes = [1]
+const candleSizes = [60]
 const dateRanges = [{
     trainDaterange: {
       from: "2018-02-11 21:00:00",
-      to: "2018-04-10 08:00:00"
+      to: "2018-03-10 08:00:00"
     },
     backtestDaterange: {
       from: "2018-04-15 09:00:00",
-      to: "2018-05-05 01:00:00"
+      to: "2018-05-01 01:00:00"
     }
   },
   // {
@@ -49,13 +48,22 @@ const strategyForBacktest = [{
   settings: {
     stopLoss: -10,
     takeProfit: 2,
-    amountForOneTrade: 2000,
+    amountForOneTrade: 100,
     expirationPeriod: 24,
     backtest: true,
     dataFile: "data-for-backtest/backtest-data.json",
-    stopTradeLimit: -100,
+    stopTradeLimit: -500,
     // totalWatchCandles: 24,
-    breakDuration: -1
+    breakDuration: -1,
+    features: ["start", "open", "high", "low", "close", "volume", "trades", {
+      name: "omlbct",
+      params: {
+        takeProfit: 2,
+        stopLoss: -10,
+        expirationPeriod: 24
+      }
+    }],
+    label: "omlbct"
   }
 }];
 
@@ -117,7 +125,7 @@ const main = async () => {
           let trainData = {}
           let testData = {}
           console.log("Connect python ...");
-          let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName, modelType, rollingStep, modelLag);
+          let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName, modelType, rollingStep, modelLag, strategyForBacktest[l]);
           console.log('Connect python done ...')
           if (result) {
             let backtestData = result;
@@ -140,7 +148,7 @@ const main = async () => {
   }
 }
 
-const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName, modelType, rollingStep, modelLag) => {
+const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName, modelType, rollingStep, modelLag, strategyConfig) => {
   return new Promise((resolve, reject) => {
     // remove vwp from train data
     trainData = _.map(trainData, temp => {
@@ -166,7 +174,9 @@ const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, tra
         candle_size: candleSize,
         model_name: modelName,
         rolling_step: rollingStep,
-        lag: modelLag
+        lag: modelLag,
+        features: strategyConfig.settings.features,
+        label: strategyConfig.settings.label
       },
       train_data: trainData,
       backtest_data: testData
