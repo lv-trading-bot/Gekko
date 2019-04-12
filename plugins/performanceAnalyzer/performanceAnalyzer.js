@@ -197,8 +197,7 @@ PerformanceAnalyzer.prototype.calculateReportStatistics = function() {
   const percentExposure = this.exposure / (Date.parse(this.dates.end) - Date.parse(this.dates.start));
 
   const sharpe = (relativeYearlyProfit - perfConfig.riskFreeReturn) 
-    / statslite.stdev(this.roundTrips.map(r => r.profit)) 
-    / Math.sqrt(this.trades / (this.trades - 2));
+    / statslite.stdev(this.roundTrips.map(r => r.profit)) / Math.sqrt(this.trades / (this.trades - 2));
   
   const downside = statslite.percentile(this.losses.map(r => r.profit), 0.25)
     * Math.sqrt(this.trades / (this.trades - 2));
