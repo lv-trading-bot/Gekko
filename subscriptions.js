@@ -81,6 +81,11 @@ var subscriptions = [
   },
   {
     emitter: ['trader', 'paperTrader'],
+    event: 'triggerUpdated',
+    handler: 'processTriggerUpdated'
+  },
+  {
+    emitter: ['trader', 'paperTrader'],
     event: 'triggerAborted',
     handler: 'processTriggerAborted'
   },

@@ -9,20 +9,70 @@ let candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
 // let's create our own method
 var method = {};
 
-method.buy = function (amountDollar) {
-  this.advice({
-    direction: "long",
-    // trigger: { // Chưa dùng
-
-    // },
-    amount: amountDollar,
+method.buy = function (amountDollar, candle) {
+  // Tìm xem có trigger nào sắp hết hạn không
+  let triggerExpireSoons = _.filter(this.triggerManagers, trigger => {
+    if(candle.start.clone().add(1.5, 'h').isAfter(trigger.properties.expires)) {
+      return true;
+    }
+    return false;
   })
+  if(triggerExpireSoons.length > 0) {
+    //Tìm ra trigger có giá mua thấp nhất
+    let theBestTrigger = null;
+    for(let i = 0; i < triggerExpireSoons.length; i++) {
+      let curTrigger = triggerExpireSoons[i];
+      if(!theBestTrigger) {
+        theBestTrigger = curTrigger;
+      } else if(theBestTrigger.properties.initialPrice > curTrigger.properties.initialPrice){
+        theBestTrigger = curTrigger;
+      }
+    }
+
+    this.updateTrigger(theBestTrigger, candle.close, candle.start);
+
+  } else {
+    this.advice({
+      direction: "long",
+      amount: amountDollar,
+    })
+  }
 }
 
 method.sell = function (amountAsset) {
   this.advice({
     direction: "short",
     amount: amountAsset,
+  })
+}
+
+method.createTrigger = function(trade) {
+  this.advice({
+    direction: 'long',
+    amount: 0,
+    trigger: {
+      type: 'doubleStop',
+      initialStart: trade.date,
+      initialPrice: trade.price,
+      currentInitialPrice: trade.price,
+      stopLoss: this.stopLoss,
+      takeProfit: this.takeProfit,
+      expires: moment(trade.date).clone().add(this.expirationPeriod * candleSize, 'm'),
+      assetAmount: trade.amountWithFee,
+    }
+  })
+}
+
+method.updateTrigger = function(trigger, price, start) {
+  this.advice({
+    direction: 'long',
+    amount: 0,
+    trigger: {
+      type: 'doubleStop',
+      id: trigger.id,
+      currentInitialPrice: price,
+      expires: moment(start).clone().add(this.expirationPeriod * candleSize, 'm'),
+    }
   })
 }
 
@@ -42,6 +92,8 @@ method.init = function () {
   this.deadLineAllowTradeAgain = null;
 
   this.totalProfit = 0;
+
+  this.triggerManagers = [];
 }
 
 method.updateStateTrade = function(candle) {
@@ -90,7 +142,7 @@ method.update = function (candle) {
   let advice = this.advices[new Date(candle.start).getTime()];
 
   if (advice == 1 && this.isAllowTrade) {
-    this.buy(this.amountForOneTrade, candle.close);
+    this.buy(this.amountForOneTrade, candle);
   }
 
   this.finalClose = candle.close;
@@ -104,19 +156,7 @@ method.onTrade = function (trade) {
   if (trade.action === "buy") {
     //assetAmount now known, insert trigger
     if (trade.amountWithFee != 0) {
-      this.advice({
-        direction: 'long',
-        amount: 0,
-        trigger: {
-          type: 'doubleStop',
-          initialStart: trade.date,
-          initialPrice: trade.price,
-          stopLoss: this.settings.stopLoss,
-          takeProfit: this.settings.takeProfit,
-          expires: moment(trade.date).add(this.expirationPeriod * candleSize, 'm'),
-          assetAmount: trade.amountWithFee,
-        }
-      })
+      this.createTrigger(trade);
     }
   } else if (trade.action === 'sell') {
 
@@ -126,6 +166,24 @@ method.onTrade = function (trade) {
 method.onTriggerFired = function(trigger) {
   let profit = (trigger.meta.exitPrice - trigger.meta.initialPrice) * 100 / trigger.meta.initialPrice;
   this.totalProfit += profit;
+
+  // Xóa các trigger đang giữ
+  this.triggerManagers = _.filter(this.triggerManagers, _trigger => {
+    return _trigger.id !== trigger.id
+  })
+}
+
+method.onTriggerCreated = function(trigger) {
+  this.triggerManagers.push(trigger);
+}
+
+method.onTriggerUpdated = function(trigger) {
+  for(let i = 0; i < this.triggerManagers.length; i++) {
+    if(this.triggerManagers[i].id === trigger.id) {
+      this.triggerManagers[i] = trigger;
+      break;
+    }
+  }
 }
 
 // for backtest
