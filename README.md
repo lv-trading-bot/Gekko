@@ -35,5 +35,5 @@ If Gekko helped you in any way, you can always leave me a tip at (BTC) 13r1jyivi
 4. Edit `strategyForBacktest`: `name`: Name Strategy, `settings`: Setting for Strategy
 ### Run
 ```
-node backtest.js
+node backtest.js <model_name> <model_type> <rolling_step> <lag_value>
 ```
