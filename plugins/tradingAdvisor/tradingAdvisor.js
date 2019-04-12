@@ -118,5 +118,16 @@ Actor.prototype.relayAdvice = function(advice) {
   this.deferredEmit('advice', advice);
 }
 
+Actor.prototype.processTriggerFired = function(trigger) {
+  this.strategy.onTriggerFired(trigger);
+}
+
+Actor.prototype.processTriggerCreated = function(trigger) {
+  this.strategy.onTriggerCreated(trigger);
+}
+
+Actor.prototype.processTriggerUpdated = function(trigger) {
+  this.strategy.onTriggerUpdated(trigger);
+}
 
 module.exports = Actor;

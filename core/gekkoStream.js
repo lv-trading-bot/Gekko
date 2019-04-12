@@ -36,6 +36,20 @@ if(config.debug && mode !== 'importer') {
       return this.finalize();
     }
 
+
+    // Mỗi 5s đẩy event một lần, sau 30s thì dừng chờ candle mới
+    let tick = 5;
+    let dueTick = 30;
+    const clearTick = () => {
+      clearInterval(this.intervalTick);
+    }
+    let fnTemp = _.after(dueTick/tick, clearTick);
+    this.intervalTick = setInterval(() => {
+      this.flushDefferedEvents();
+      fnTemp();
+    }, tick*1000);
+
+
     const start = moment();
     var relayed = false;
     var at = null;

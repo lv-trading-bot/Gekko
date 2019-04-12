@@ -65,6 +65,15 @@ var Base = function(settings) {
   if(!this.onTrade)
     this.onTrade = function() {};
 
+  if(!this.onTriggerFired) 
+    this.onTriggerFired = function() {};
+
+  if(!this.onTriggerCreated)
+    this.onTriggerCreated = function() {};
+
+  if(!this.onTriggerUpdated) 
+    this.onTriggerUpdated = function() {};
+    
   // let's run the implemented starting point
   this.init();
 

@@ -15,13 +15,13 @@ const marketsAndPair = [
   {
     exchange: "binance",
     currency: "USDT",
-    asset: "BTC"
+    asset: "ETH"
   }
 ]
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
-const candleSizes = [60]
+const candleSizes = [1]
 const dateRanges = [{
     trainDaterange: {
       from: "2018-02-11 21:00:00",
@@ -45,16 +45,17 @@ const dateRanges = [{
 ]
 
 const strategyForBacktest = [{
-  name: "OMLBCT",
+  name: "OMLBCTWithStopTrade",
   settings: {
-    // startBalance: 2500,
-    // startAsset: 0,
     stopLoss: -10,
     takeProfit: 2,
-    amountForOneTrade: 100,
-    stopTrade: 24,
+    amountForOneTrade: 2000,
+    expirationPeriod: 24,
     backtest: true,
-    dataFile: "data-for-backtest/backtest-data.json"
+    dataFile: "data-for-backtest/backtest-data.json",
+    stopTradeLimit: -100,
+    // totalWatchCandles: 24,
+    breakDuration: -1
   }
 }];
 
@@ -72,7 +73,7 @@ const strategyGetData = {
     takeProfit: 2
   }
 };
-const nameConfig = "backtest-config.js";
+const nameConfig = "config-backtest.js";
 const nameSampleConfig = "sample-config-for-backtest.js";
 
 const api = "http://localhost:5000/backtest";

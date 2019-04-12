@@ -18,7 +18,7 @@ config.watch = {
   // see https://gekko.wizb.it/docs/introduction/supported_exchanges.html
   exchange: 'binance',
   currency: 'USDT',
-  asset: 'BTC',
+  asset: 'ETH',
 
   // You can set your own tickrate (refresh rate).
   // If you don't set it, the defaults are 2 sec for
@@ -32,104 +32,20 @@ config.watch = {
 
 config.tradingAdvisor = {
   enabled: true,
-  method: 'OMLBCT',
-  candleSize: 60,
+  method: 'OMLBCTWithStopTradePaperTrade',
+  candleSize: 1,
   historySize: 0,
 }
 
-config.OMLBCT = {
-  startBalance: 2500,
-  startAsset: 0,
-  stopLoss: -2,
-  takeProfit: 4,
+config['OMLBCTWithStopTradePaperTrade'] = {
+  stopLoss: -0.005,
+  takeProfit: 0.01,
   amountForOneTrade: 100,
-  stopTrade: 24,
-  backtest: true
+  expirationPeriod: 24,
+  stopTradeLimit: -100,
+  // totalWatchCandles: 24,
+  breakDuration: -1
 }
-
-config['writeCandle2Csv'] = {
-  // EMA weight (α)
-  // the higher the weight, the more smooth (and delayed) the line
-  short: 10,
-  long: 21,
-  signal: 9,
-  // the difference between the EMAs (to act as triggers)
-  thresholds: {
-    down: -0.025,
-    up: 0.025,
-    // How many candle intervals should a trend persist
-    // before we consider it real?
-    persistence: 1,
-    low: 30,
-    high: 70,
-  },
-  interval: 14,
-  fileName: "BTC_USDT_RSI_MACD.csv"
-}
-
-config['LSTM'] = {
-  // EMA weight (α)
-  // the higher the weight, the more smooth (and delayed) the line
-  short: 10,
-  long: 21,
-  signal: 9,
-  // the difference between the EMAs (to act as triggers)
-  thresholds: {
-    down: -0.025,
-    up: 0.025,
-    // How many candle intervals should a trend persist
-    // before we consider it real?
-    persistence: 1,
-    low: 30,
-    high: 70,
-  },
-  interval: 14,
-  api: "http://127.0.0.1:5000/advice"
-}
-
-// MACD settings:
-config.MACD = {
-  // EMA weight (α)
-  // the higher the weight, the more smooth (and delayed) the line
-  short: 12,
-  long: 26,
-  signal: 9,
-  // the difference between the EMAs (to act as triggers)
-  thresholds: {
-    down: -0.025,
-    up: 0.025,
-    // How many candle intervals should a trend persist
-    // before we consider it real?
-    persistence: 1
-  }
-};
-
-// RSI-MACD settings:
-config['RSI-MACD'] = {
-  // EMA weight (α)
-  // the higher the weight, the more smooth (and delayed) the line
-  short: 10,
-  long: 21,
-  signal: 9,
-  // the difference between the EMAs (to act as triggers)
-  thresholds: {
-    down: -0.025,
-    up: 0.025,
-    // How many candle intervals should a trend persist
-    // before we consider it real?
-    persistence: 1,
-    low: 30,
-    high: 70,
-  },
-  interval: 14
-};
-
-// settings for other strategies can be found at the bottom, note that only
-// one strategy is active per gekko, the other settings are ignored.
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//                       CONFIGURING PLUGINS
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // do you want Gekko to simulate the profit of the strategy's own advice?
 config.paperTrader = {
@@ -140,29 +56,11 @@ config.paperTrader = {
   simulationBalance: {
     // these are in the unit types configured in the watcher.
     asset: 0,
-    currency: 50000,
+    currency: 5000,
   },
   // how much fee in % does each trade cost?
   feeMaker: 0.1,
-  feeTaker: 0,
-  feeUsing: 'maker',
-  // how much slippage/spread should Gekko assume per trade?
-  slippage: 0,
-}
-
-config.multiPaperTrader = {
-  enabled: false,
-  // report the profit in the currency or the asset?
-  reportInCurrency: true,
-  // start balance, on what the current balance is compared with
-  simulationBalance: {
-    // these are in the unit types configured in the watcher.
-    asset: 1,
-    currency: 100,
-  },
-  // how much fee in % does each trade cost?
-  feeMaker: 0.15,
-  feeTaker: 0.25,
+  feeTaker: 0.1,
   feeUsing: 'maker',
   // how much slippage/spread should Gekko assume per trade?
   slippage: 0.05,
@@ -171,12 +69,7 @@ config.multiPaperTrader = {
 config.performanceAnalyzer = {
   enabled: true,
   riskFreeReturn: 5,
-  roundTripReportMode: "BY_DOUBLESTOP_TRIGGER"//"BY_DOUBLESTOP_TRIGGER" // DEFAULT
-}
-
-config.multiPerformanceAnalyzer = {
-  enabled: false,
-  riskFreeReturn: 5
+  roundTripReportMode: "DEFAULT"
 }
 
 // Want Gekko to perform real trades on buy or sell advice?
@@ -208,10 +101,10 @@ config.pushover = {
 
 // want Gekko to send a mail on buy or sell advice?
 config.mailer = {
-  enabled: false,       // Send Emails if true, false to turn off
+  enabled: true,       // Send Emails if true, false to turn off
   sendMailOnStart: true,    // Send 'Gekko starting' message if true, not if false
 
-  email: '',    // Your Gmail address
+  email: 'phuotm6tet@gmail.com',    // Your Gmail address
   muteSoft: true, // disable advice printout if it's soft
 
   // You don't have to set your password here, if you leave it blank we will ask it
@@ -224,7 +117,7 @@ config.mailer = {
   // WARNING: If you have NOT downloaded Gekko from the github page above we CANNOT
   // guarantuee that your email address & password are safe!
 
-  password: '',       // Your Gmail Password - if not supplied Gekko will prompt on startup.
+  password: 'xstormdiphuot',       // Your Gmail Password - if not supplied Gekko will prompt on startup.
 
   tag: '[GEKKO] ',      // Prefix all email subject lines with this
 
@@ -235,9 +128,9 @@ config.mailer = {
   server: 'smtp.gmail.com',   // The name of YOUR outbound (SMTP) mail server.
   smtpauth: true,     // Does SMTP server require authentication (true for Gmail)
           // The following 3 values default to the Email (above) if left blank
-  user: '',       // Your Email server user name - usually your full Email address 'me@mydomain.com'
-  from: '',       // 'me@mydomain.com'
-  to: '',       // 'me@somedomain.com, me@someotherdomain.com'
+  user: 'phuotm6tet@gmail.com',       // Your Email server user name - usually your full Email address 'me@mydomain.com'
+  from: 'Tin Tin Trading',       // 'me@mydomain.com'
+  to: 'xuantinfx@gmail.com',       // 'me@somedomain.com, me@someotherdomain.com'
   ssl: true,        // Use SSL (true for Gmail)
   port: '',       // Set if you don't want to use the default port
 }
@@ -365,7 +258,7 @@ config.adviceWriter = {
 
 config.backtestResultExporter = {
   enabled: false,
-  writeToDisk: true,
+  writeToDisk: false,
   data: {
     stratUpdates: false,
     portfolioValues: true,
@@ -406,8 +299,8 @@ config.myBacktestResultExporter = {
       "End time": `moment(get(this, "dates.end","")).format('YYYY-MM-DD HH:mm:ss')`,
       "Buy": `_.filter(this.trades, trade => trade.action == "buy").length`,
       "Sell": `_.filter(this.trades, trade => trade.action == "sell").length`,
-      "Market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
-      "Profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
+      "market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
+      "profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
     }
    }
   }
@@ -462,19 +355,11 @@ config.mongodb = {
 // @link: https://gekko.wizb.it/docs/commandline/backtesting.html
 
 config.backtest = {
-  // daterange: 'scan',
+  daterange: 'scan',
 // daterange: {
-//   from: "2019-01-01 00:00:00",
-//   to: "2019-01-31 23:59:59"
-// },
-  daterange: {
-    from: "2019-02-14 01:00:00",
-    to: "2019-02-24 23:00:00"
-  },
-  // daterange: {
-  //   from: "2019-02-25 23:00:00",
-  //   to: "2019-03-11 02:00:00"
-  // },
+//   from: "2018-03-01",
+//   to: "2018-04-28"
+//},
   batchSize: 50
 }
 
@@ -485,8 +370,8 @@ config.backtest = {
 config.importer = {
   daterange: {
     // NOTE: these dates are in UTC
-    from: "2019-02-20 00:00:00",
-    to: "2019-03-13 00:00:00"
+    from: "2017-11-01 00:00:00",
+    to: "2017-11-20 00:00:00"
   }
 }
 
@@ -651,6 +536,6 @@ config['tulip-adx'] = {
 // understand this.
 //
 // Not sure? Read this first: https://github.com/askmike/gekko/issues/201
-config['I understand that Gekko only automates MY OWN trading strategies'] = false;
+config['I understand that Gekko only automates MY OWN trading strategies'] = true;
 
 module.exports = config;
