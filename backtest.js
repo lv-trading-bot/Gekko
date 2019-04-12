@@ -25,7 +25,7 @@ const candleSizes = [60]
 const dateRanges = [{
     trainDaterange: {
       from: "2018-02-11 21:00:00",
-      to: "2018-04-15 08:00:00"
+      to: "2018-04-10 08:00:00"
     },
     backtestDaterange: {
       from: "2018-04-15 09:00:00",
@@ -59,8 +59,10 @@ const strategyForBacktest = [{
 }];
 
 const modelName = process.argv[2] || "random_forest";
-const backtestMethod = process.argv[3] || "default";
-const rollingStep = 12;
+const modelType = process.argv[3] || "fixed";
+const rollingStep = parseInt(process.argv[4]) || 12;
+const modelLag = parseInt(process.argv[5]) || 0;
+
 const strategyGetData = {
   name: "writeCandle2Json",
   settings: {
@@ -96,9 +98,9 @@ const main = async () => {
           console.log("Write config for prepare train data...");
           fs.writeFileSync(nameConfig, await generateConfigString(config));
 
-          // Chạy backtest để chuẩn bị train data
-          console.log("Run gekko for prepare train data...");
-          await runGekkoProcess(nameConfig);
+          // // Chạy backtest để chuẩn bị train data
+          // console.log("Run gekko for prepare train data...");
+          // await runGekkoProcess(nameConfig);
 
           console.log("Generate config for prepare test data...");
           let testDataName = generateConfigTest(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].backtestDaterange);
@@ -106,15 +108,15 @@ const main = async () => {
           console.log("Write config for prepare test data...");
           fs.writeFileSync(nameConfig, await generateConfigString(config));
 
-          // Chạy backtest để chuẩn bị backtest data
-          console.log("Run gekko for prepare test data...");
-          await runGekkoProcess(nameConfig);
+          // // Chạy backtest để chuẩn bị backtest data
+          // console.log("Run gekko for prepare test data...");
+          // await runGekkoProcess(nameConfig);
 
-          // Gửi train data và test data cho python
-          let trainData = require('./' + trainDataName);
-          let testData = require('./' + testDataName);
+          // Gửi train data và test data cho python, tạm thời bỏ
+          let trainData = {}
+          let testData = {}
           console.log("Connect python ...");
-          let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName, backtestMethod, rollingStep);
+          let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName, modelType, rollingStep, modelLag);
           console.log('Connect python done ...')
           if (result) {
             let backtestData = result;
@@ -137,7 +139,7 @@ const main = async () => {
   }
 }
 
-const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName, backtestMethod, rollingStep) => {
+const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName, modelType, rollingStep, modelLag) => {
   return new Promise((resolve, reject) => {
     // remove vwp from train data
     trainData = _.map(trainData, temp => {
@@ -151,7 +153,7 @@ const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, tra
     let data = {
       metadata: {
         market_info: marketInfo,
-        method: backtestMethod,
+        model_type: modelType,
         train_daterange: {
           from: new Date(trainDaterange.from).getTime(),
           to: new Date(trainDaterange.to).getTime()
@@ -162,7 +164,8 @@ const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, tra
         },
         candle_size: candleSize,
         model_name: modelName,
-        rolling_step: rollingStep
+        rolling_step: rollingStep,
+        lag: modelLag
       },
       train_data: trainData,
       backtest_data: testData
