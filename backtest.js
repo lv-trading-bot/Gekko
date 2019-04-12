@@ -6,41 +6,40 @@ const {
 const moment = require('moment');
 const axios = require('axios');
 
-const marketsAndPair = [
-  // {
-  // 	exchange: "binance",
-  // 	currency: "USDT",
-  // 	asset: "BTC"
-  // },
-  {
+const marketsAndPair = [{
     exchange: "binance",
     currency: "USDT",
-    asset: "ETH"
-  }
+    asset: "BTC"
+  },
+  // {
+  //   exchange: "binance",
+  //   currency: "USDT",
+  //   asset: "ETH"
+  // }
 ]
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
-const candleSizes = [1]
+const candleSizes = [60]
 const dateRanges = [{
     trainDaterange: {
-      from: "2019-03-01 01:00:00",
-      to: "2019-04-03 01:00:00"
+      from: "2018-02-11 21:00:00",
+      to: "2018-03-10 08:00:00"
     },
     backtestDaterange: {
-      from: "2019-04-01 01:00:00",
-      to: "2019-04-03 01:00:00"
+      from: "2018-04-15 09:00:00",
+      to: "2018-05-01 01:00:00"
     }
   },
   // {
-  // 	trainDaterange: {
-  // 		from: "2019-01-02 01:00:00",
-  // 		to: "2019-01-31 23:00:00"
-  // 	},
-  // 	backtestDaterange: {
-  // 		from: "2019-02-01 01:00:00",
-  // 		to: "2019-02-12 23:00:00"
-  // 	}
+  //   trainDaterange: {
+  //     from: "2018-02-11 21:00:00",
+  //     to: "2018-03-30 08:00:00"
+  //   },
+  //   backtestDaterange: {
+  //     from: "2018-04-15 09:00:00",
+  //     to: "2018-05-01 01:00:00"
+  //   }
   // }
 ]
 
@@ -49,17 +48,30 @@ const strategyForBacktest = [{
   settings: {
     stopLoss: -10,
     takeProfit: 2,
-    amountForOneTrade: 2000,
+    amountForOneTrade: 100,
     expirationPeriod: 24,
     backtest: true,
     dataFile: "data-for-backtest/backtest-data.json",
-    stopTradeLimit: -100,
+    stopTradeLimit: -500,
     // totalWatchCandles: 24,
-    breakDuration: -1
+    breakDuration: -1,
+    features: ["start", "open", "high", "low", "close", "volume", "trades", {
+      name: "omlbct",
+      params: {
+        takeProfit: 2,
+        stopLoss: -10,
+        expirationPeriod: 24
+      }
+    }],
+    label: "omlbct"
   }
 }];
 
 const modelName = process.argv[2] || "random_forest";
+const modelType = process.argv[3] || "fixed";
+const rollingStep = parseInt(process.argv[4]) || 12;
+const modelLag = parseInt(process.argv[5]) || 0;
+
 const strategyGetData = {
   name: "writeCandle2Json",
   settings: {
@@ -95,9 +107,9 @@ const main = async () => {
           console.log("Write config for prepare train data...");
           fs.writeFileSync(nameConfig, await generateConfigString(config));
 
-          // Chạy backtest để chuẩn bị train data
-          console.log("Run gekko for prepare train data...");
-          await runGekkoProcess(nameConfig);
+          // // Chạy backtest để chuẩn bị train data
+          // console.log("Run gekko for prepare train data...");
+          // await runGekkoProcess(nameConfig);
 
           console.log("Generate config for prepare test data...");
           let testDataName = generateConfigTest(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].backtestDaterange);
@@ -105,15 +117,15 @@ const main = async () => {
           console.log("Write config for prepare test data...");
           fs.writeFileSync(nameConfig, await generateConfigString(config));
 
-          // Chạy backtest để chuẩn bị backtest data
-          console.log("Run gekko for prepare test data...");
-          await runGekkoProcess(nameConfig);
+          // // Chạy backtest để chuẩn bị backtest data
+          // console.log("Run gekko for prepare test data...");
+          // await runGekkoProcess(nameConfig);
 
-          // Gửi train data và test data cho python
-          let trainData = require('./' + trainDataName);
-          let testData = require('./' + testDataName);
+          // Gửi train data và test data cho python, tạm thời bỏ
+          let trainData = {}
+          let testData = {}
           console.log("Connect python ...");
-          let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName);
+          let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName, modelType, rollingStep, modelLag, strategyForBacktest[l]);
           console.log('Connect python done ...')
           if (result) {
             let backtestData = result;
@@ -136,7 +148,7 @@ const main = async () => {
   }
 }
 
-const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName) => {
+const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, trainDaterange, backtestDaterange, candleSize, modelName, modelType, rollingStep, modelLag, strategyConfig) => {
   return new Promise((resolve, reject) => {
     // remove vwp from train data
     trainData = _.map(trainData, temp => {
@@ -150,6 +162,7 @@ const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, tra
     let data = {
       metadata: {
         market_info: marketInfo,
+        model_type: modelType,
         train_daterange: {
           from: new Date(trainDaterange.from).getTime(),
           to: new Date(trainDaterange.to).getTime()
@@ -159,7 +172,11 @@ const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, tra
           to: new Date(backtestDaterange.to).getTime()
         },
         candle_size: candleSize,
-        model_name: modelName
+        model_name: modelName,
+        rolling_step: rollingStep,
+        lag: modelLag,
+        features: strategyConfig.settings.features,
+        label: strategyConfig.settings.label
       },
       train_data: trainData,
       backtest_data: testData
