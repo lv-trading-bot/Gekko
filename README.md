@@ -36,4 +36,8 @@ If Gekko helped you in any way, you can always leave me a tip at (BTC) 13r1jyivi
 ### Run
 ```
 node backtest.js <model_name> <model_type> <rolling_step> <lag_value>
+// model_name: "random_forest", "gradient_boosting",
+// model_type: "fixed", "rolling"
+// rolling_step: >0, <0 thì không sử dụng
+// lag_value: >0, <0 thì không sử dụng
 ```
