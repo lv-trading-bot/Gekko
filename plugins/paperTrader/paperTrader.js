@@ -45,6 +45,10 @@ const PaperTrader = function () {
 }
 
 PaperTrader.prototype.isValidAdvice = function (advice) {
+  // All in
+  if(!advice.amount) {
+    return true;
+  }
   if (advice.recommendation === 'long') {
     if (advice.amount <= this.portfolio.currency) {
       return true;
