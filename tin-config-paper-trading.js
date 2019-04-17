@@ -18,7 +18,7 @@ config.watch = {
   // see https://gekko.wizb.it/docs/introduction/supported_exchanges.html
   exchange: 'binance',
   currency: 'USDT',
-  asset: 'ETH',
+  asset: 'BTC',
 
   // You can set your own tickrate (refresh rate).
   // If you don't set it, the defaults are 2 sec for
@@ -40,7 +40,7 @@ config.tradingAdvisor = {
 config['OMLBCTWithStopTradePaperTrade'] = {
   stopLoss: -0.005,
   takeProfit: 0.01,
-  amountForOneTrade: 100,
+  amountForOneTrade: 10000,
   expirationPeriod: 24,
   stopTradeLimit: -100,
   // totalWatchCandles: 24,
@@ -56,7 +56,7 @@ config.paperTrader = {
   simulationBalance: {
     // these are in the unit types configured in the watcher.
     asset: 0,
-    currency: 5000,
+    currency: 10000000,
   },
   // how much fee in % does each trade cost?
   feeMaker: 0.1,

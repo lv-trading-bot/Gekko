@@ -3,6 +3,10 @@ const moment = require('moment');
 
 const util = require('../../core/util');
 const ENV = util.gekkoEnv();
+const mode = util.gekkoMode();
+const exchange = util.getConfig().watch.exchange;
+const asset = util.getConfig().watch.asset;
+const currency = util.getConfig().watch.currency;
 
 const config = util.getConfig();
 const calcConfig = config.paperTrader;
@@ -41,12 +45,13 @@ const PaperTrader = function () {
   this.propogatedTrades = 0;
   this.propogatedTriggers = 0;
 
-  this.activeDoubleStopTriggers = []
+  this.activeDoubleStopTriggers = [];
+  this.exchange = new (require('./getPriceFromOrderExchange/' + exchange))(asset, currency);
 }
 
 PaperTrader.prototype.isValidAdvice = function (advice) {
   // All in
-  if(!advice.amount) {
+  if (!advice.amount) {
     return true;
   }
   if (advice.recommendation === 'long') {
@@ -100,51 +105,63 @@ PaperTrader.prototype.setStartBalance = function () {
 // with more BTC than we started with, this function
 // calculates Gekko's profit in %.
 PaperTrader.prototype.updatePosition = function (what, amount) {
+  return new Promise(async (resolve, reject) => {
+    let price = this.price;
+    if (mode === 'realtime') {
+      try {
+        let tempPrice = await this.exchange.getPrice(what, amount);
+        price = tempPrice ? tempPrice : this.price;
+      } catch (error) {
+        log.info("" + error);
+        price = this.price;
+      }
+    }
 
-  let cost;
-  // let amount;
-  let amountWithFee = 0;
+    let cost;
+    // let amount;
+    let amountWithFee = 0;
 
-  // virtually trade all {currency} to {asset}
-  // at the current price (minus fees)
-  if (what === 'long') {
-    // amount: currency
-    // amountWithFee: asset
-    // Nếu không có amount thì chuyển về all-in
-    amount = amount !== undefined ? amount : this.portfolio.currency;
-    amountWithFee = this.extractFee(amount / this.price);
-    cost = (1 - this.fee) * amount;
-    this.portfolio.asset += amountWithFee;
-    this.portfolio.currency -= amount;
+    // virtually trade all {currency} to {asset}
+    // at the current price (minus fees)
+    if (what === 'long') {
+      // amount: currency
+      // amountWithFee: asset
+      // Nếu không có amount thì chuyển về all-in
+      amount = amount !== undefined ? amount : this.portfolio.currency;
+      amountWithFee = this.extractFee(amount / price);
+      cost = (1 - this.fee) * amount;
+      this.portfolio.asset += amountWithFee;
+      this.portfolio.currency -= amount;
 
-    // this.exposed = true;
-    // this.trades++;
-  }
+      // this.exposed = true;
+      // this.trades++;
+    }
 
-  // virtually trade all {currency} to {asset}
-  // at the current price (minus fees)
-  else if (what === 'short') {
-    // amount: asset
-    // amountWithFee: currency
-    // Nếu không có amount thì chuyển về all-in
-    amount = amount !== undefined ? amount : (this.portfolio.asset);
-    amountWithFee = this.extractFee(amount * this.price);
-    cost = (1 - this.fee) * (amount * this.price);
-    this.portfolio.currency += amountWithFee;
-    this.portfolio.asset -= amount;
+    // virtually trade all {currency} to {asset}
+    // at the current price (minus fees)
+    else if (what === 'short') {
+      // amount: asset
+      // amountWithFee: currency
+      // Nếu không có amount thì chuyển về all-in
+      amount = amount !== undefined ? amount : (this.portfolio.asset);
+      amountWithFee = this.extractFee(amount * price);
+      cost = (1 - this.fee) * (amount * price);
+      this.portfolio.currency += amountWithFee;
+      this.portfolio.asset -= amount;
 
-    // this.exposed = false;
-    // this.trades++;
-  }
+      // this.exposed = false;
+      // this.trades++;
+    }
 
-  const effectivePrice = this.price * this.fee;
+    const effectivePrice = price * this.fee;
 
-  return {
-    cost,
-    amount,
-    effectivePrice,
-    amountWithFee
-  };
+    resolve({
+      cost,
+      amount,
+      effectivePrice,
+      amountWithFee
+    });
+  })
 }
 
 PaperTrader.prototype.getBalance = function () {
@@ -155,7 +172,7 @@ PaperTrader.prototype.now = function () {
   return this.candle.start.clone().add(1, 'minute');
 }
 
-PaperTrader.prototype.processAdvice = function (advice) {
+PaperTrader.prototype.processAdvice = async function (advice) {
   if (!this.isValidAdvice(advice) && advice.amount !== undefined) return;
   let action;
   if (advice.recommendation === 'short') {
@@ -214,7 +231,7 @@ PaperTrader.prototype.processAdvice = function (advice) {
     amount,
     effectivePrice,
     amountWithFee
-  } = this.updatePosition(advice.recommendation, advice.amount);
+  } = await this.updatePosition(advice.recommendation, advice.amount);
 
   this.relayPortfolioChange();
   this.relayPortfolioValueChange();
@@ -270,7 +287,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
       return log.warn(`[Papertrader] Please provide correct arguments for doubleStop trigger: (stopLoss, takeProfit, assetAmount)=(${trigger.stopLoss}, ${trigger.takeProfit}, ${trigger.assetAmount})`);
     }
 
-    if(!trigger.id) {
+    if (!trigger.id) {
       const triggerId = 'trigger-' + (++this.propogatedTriggers);
 
       this.deferredEmit('triggerCreated', {
@@ -302,11 +319,11 @@ PaperTrader.prototype.createTrigger = function (advice) {
           onTrigger: this.onDoubleStopTrigger
         })
       )
-    } else if(trigger.id) {
+    } else if (trigger.id) {
       // update trigger
-      for(let i = 0 ; i < this.activeDoubleStopTriggers.length; i++) {
+      for (let i = 0; i < this.activeDoubleStopTriggers.length; i++) {
         let curTrigger = this.activeDoubleStopTriggers[i];
-        if(curTrigger.id === trigger.id) {
+        if (curTrigger.id === trigger.id) {
           curTrigger.expires = trigger.expires;
           curTrigger.currentInitialPrice = trigger.currentInitialPrice;
           this.deferredEmit('triggerUpdated', {
@@ -332,7 +349,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
   }
 }
 
-PaperTrader.prototype.onDoubleStopTrigger = function (id, assetAmount, roundTrip) {
+PaperTrader.prototype.onDoubleStopTrigger = async function (id, assetAmount, roundTrip) {
 
   const date = this.now();
 
@@ -343,7 +360,7 @@ PaperTrader.prototype.onDoubleStopTrigger = function (id, assetAmount, roundTrip
     amount,
     effectivePrice,
     amountWithFee
-  } = this.updatePosition('short', assetAmount);
+  } = await this.updatePosition('short', assetAmount);
 
   this.relayPortfolioChange();
   this.relayPortfolioValueChange();
@@ -375,7 +392,7 @@ PaperTrader.prototype.onDoubleStopTrigger = function (id, assetAmount, roundTrip
 
 }
 
-PaperTrader.prototype.onStopTrigger = function () {
+PaperTrader.prototype.onStopTrigger = async function () {
 
   const date = this.now();
 
@@ -388,7 +405,7 @@ PaperTrader.prototype.onStopTrigger = function () {
     cost,
     amount,
     effectivePrice
-  } = this.updatePosition('short');
+  } = await this.updatePosition('short');
 
   this.relayPortfolioChange();
   this.relayPortfolioValueChange();
