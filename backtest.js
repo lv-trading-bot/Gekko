@@ -68,7 +68,7 @@ const strategyForBacktest = [{
   }
 }];
 
-const performMaxTest = true;
+const performMaxTest = false;
 
 const modelName = process.argv[2] || "random_forest";
 const modelType = process.argv[3] || "fixed";
