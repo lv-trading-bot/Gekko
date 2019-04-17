@@ -187,6 +187,7 @@ MyBacktestResultReporter.prototype.writeToDisk = function(backtest, next) {
       strData = mergeData(data.toString());
       fs.writeFileSync(filePath, strData);
     }
+    next()
   })
 }
 

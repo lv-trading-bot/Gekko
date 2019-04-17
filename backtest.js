@@ -20,7 +20,7 @@ const marketsAndPair = [{
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
-const candleSizes = [60]
+const candleSizes = [30, 60]
 const dateRanges = [{
     trainDaterange: {
       from: "2018-02-11 21:00:00",
@@ -253,7 +253,7 @@ const generateConfigBacktest = (config, backtestDaterange, strategy) => {
   config["backtest"].daterange = backtestDaterange;
   config["tradingAdvisor"].method = strategy.name;
   config[strategy.name] = strategy.settings;
-  config["myBacktestResultExporter"].enabled = false;
+  config["myBacktestResultExporter"].enabled = true;
   config["backtestResultExporter"].enabled = true;
 }
 

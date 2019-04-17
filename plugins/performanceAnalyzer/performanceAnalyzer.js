@@ -79,6 +79,11 @@ PerformanceAnalyzer.prototype.processCandle = function(candle, done) {
     this.emitRoundtripUpdate();
   }
 
+  const report = this.calculateReportStatistics();
+  if(report) {
+    this.deferredEmit('performanceReport', report);
+  }
+
   done();
 }
 
