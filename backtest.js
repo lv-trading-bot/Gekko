@@ -20,25 +20,26 @@ const marketsAndPair = [{
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
-const candleSizes = [60]
+const candleSizes = [30]
+//NOTE: MUST INCLUDE TIMEZONE, gekko uses UTC inside
 const dateRanges = [{
     trainDaterange: {
-      from: "2018-02-11 21:00:00",
-      to: "2018-04-10 08:00:00"
+      from: "2018-02-11T21:00:00.000Z",
+      to: "2018-03-10T08:00:00.000Z"
     },
     backtestDaterange: {
-      from: "2018-04-15 09:00:00",
-      to: "2018-05-01 01:00:00"
+      from: "2018-04-15T09:00:00.000Z",
+      to: "2018-05-01T01:00:00.000Z"
     }
   },
   // {
   //   trainDaterange: {
-  //     from: "2018-02-11 21:00:00",
-  //     to: "2018-03-30 08:00:00"
+  //     from: "2018-02-11T21:00:00.000Z",
+  //     to: "2018-03-30T08:00:00.000Z"
   //   },
   //   backtestDaterange: {
-  //     from: "2018-04-15 09:00:00",
-  //     to: "2018-05-01 01:00:00"
+  //     from: "2018-04-15T09:00:00.000Z",
+  //     to: "2018-05-01T01:00:00.000Z"
   //   }
   // }
 ]
@@ -67,7 +68,7 @@ const strategyForBacktest = [{
   }
 }];
 
-const performMaxTest = false;
+const performMaxTest = true;
 
 const modelName = process.argv[2] || "random_forest";
 const modelType = process.argv[3] || "fixed";
