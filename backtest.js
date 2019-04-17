@@ -21,6 +21,7 @@ const marketsAndPair = [{
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
 const candleSizes = [30, 60]
+//NOTE: MUST INCLUDE TIMEZONE, gekko uses UTC inside
 const dateRanges = [{
     trainDaterange: {
       from: "2018-02-11T21:00:00.000Z",
