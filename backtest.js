@@ -24,7 +24,7 @@ const candleSizes = [60]
 const dateRanges = [{
     trainDaterange: {
       from: "2018-02-11 21:00:00",
-      to: "2018-03-10 08:00:00"
+      to: "2018-04-10 08:00:00"
     },
     backtestDaterange: {
       from: "2018-04-15 09:00:00",
@@ -67,9 +67,11 @@ const strategyForBacktest = [{
   }
 }];
 
+const performMaxTest = false;
+
 const modelName = process.argv[2] || "random_forest";
 const modelType = process.argv[3] || "fixed";
-const rollingStep = parseInt(process.argv[4]) || 12;
+const rollingStep = parseInt(process.argv[4]) || 0;
 const modelLag = parseInt(process.argv[5]) || 0;
 
 const strategyGetData = {
@@ -176,7 +178,8 @@ const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, tra
         rolling_step: rollingStep,
         lag: modelLag,
         features: strategyConfig.settings.features,
-        label: strategyConfig.settings.label
+        label: strategyConfig.settings.label,
+        max_test: performMaxTest
       },
       train_data: trainData,
       backtest_data: testData
@@ -188,6 +191,7 @@ const sendTrainAndTestDataToPythonServer = (marketInfo, trainData, testData, tra
       })
       .catch(function (error) {
         console.log(error + "");
+        console.log(error.response && error.response.data);
         resolve(false);
       });
   })
