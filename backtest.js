@@ -20,12 +20,14 @@ const marketsAndPair = [{
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
+// const candleSizes = [15, 30, 60, 120, 240, 360, 720]
 const candleSizes = [60]
 //NOTE: MUST INCLUDE TIMEZONE, gekko uses UTC inside
-const dateRanges = [{
+const dateRanges = [
+  {
     trainDaterange: {
       from: "2018-02-11T21:00:00.000Z",
-      to: "2018-03-10T08:00:00.000Z"
+      to: "2018-03-30T08:00:00.000Z"
     },
     backtestDaterange: {
       from: "2018-04-15T09:00:00.000Z",
@@ -34,14 +36,34 @@ const dateRanges = [{
   },
   // {
   //   trainDaterange: {
-  //     from: "2018-02-11T21:00:00.000Z",
-  //     to: "2018-03-30T08:00:00.000Z"
+  //     from: "2018-04-01T00:00:00.000Z",
+  //     to: "2018-07-01T00:00:00.000Z"
   //   },
   //   backtestDaterange: {
-  //     from: "2018-04-15T09:00:00.000Z",
-  //     to: "2018-05-01T01:00:00.000Z"
+  //     from: "2018-07-02T00:00:00.000Z",
+  //     to: "2018-08-01T01:00:00.000Z"
   //   }
-  // }
+  // },
+  // {
+  //   trainDaterange: {
+  //     from: "2018-07-01T00:00:00.000Z",
+  //     to: "2018-10-01T00:00:00.000Z"
+  //   },
+  //   backtestDaterange: {
+  //     from: "2018-10-02T00:00:00.000Z",
+  //     to: "2018-11-01T01:00:00.000Z"
+  //   }
+  // },
+  // // {
+  // //   trainDaterange: {
+  // //     from: "2019-01-01T00:00:00.000Z",
+  // //     to: "2019-03-01T00:00:00.000Z"
+  // //   },
+  // //   backtestDaterange: {
+  // //     from: "2019-03-01T00:00:00.000Z",
+  // //     to: "2019-04-15T01:00:00.000Z"
+  // //   }
+  // // },
 ]
 
 const strategyForBacktest = [{

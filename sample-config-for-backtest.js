@@ -143,7 +143,7 @@ config.paperTrader = {
     currency: 5000,
   },
   // how much fee in % does each trade cost?
-  feeMaker: 0,
+  feeMaker: 0.1,
   feeTaker: 0,
   feeUsing: 'maker',
   // how much slippage/spread should Gekko assume per trade?
@@ -417,7 +417,7 @@ config.myBacktestResultExporter = {
       "stop_loss": "`${this.backtest.strategyParameters.stopLoss}`",
       "expiration_period": "`${this.backtest.strategyParameters.expirationPeriod}`",
       "train_daterange": "`${config.dateRange.trainDaterange.from}_${config.dateRange.trainDaterange.to}`",
-      "test_daterange": "`${config.dateRange.backtestDaterange.from}_${config.dateRange.backtestDaterange.from}`",
+      "test_daterange": "`${config.dateRange.backtestDaterange.from}_${config.dateRange.backtestDaterange.to}`",
       "candle_size": "this.backtest.tradingAdvisor.candleSize",
       "Market": "`${this.performanceReport.market}%`",
       "PnL": "`${this.performanceReport.profit} (${this.performanceReport.relativeProfit}%)`",
