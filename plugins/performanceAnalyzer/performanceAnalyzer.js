@@ -48,6 +48,8 @@ const PerformanceAnalyzer = function() {
 
   this.start = {};
   this.openRoundTrip = false;
+
+  this.report = false;
 }
 
 PerformanceAnalyzer.prototype.processPortfolioValueChange = function(event) {
@@ -56,6 +58,12 @@ PerformanceAnalyzer.prototype.processPortfolioValueChange = function(event) {
   }
   //porforlio value is re-calculated
   this.balance = event.balance;
+ 
+  const report = this.calculateReportStatistics();
+  if(report) {
+    this.report = report;
+    this.deferredEmit('performanceReport', report);
+  }
 }
 
 PerformanceAnalyzer.prototype.processPortfolioChange = function(event) {
@@ -77,11 +85,6 @@ PerformanceAnalyzer.prototype.processCandle = function(candle, done) {
 
   if(this.openRoundTrip) {
     this.emitRoundtripUpdate();
-  }
-
-  const report = this.calculateReportStatistics();
-  if(report) {
-    this.deferredEmit('performanceReport', report);
   }
 
   done();
@@ -108,6 +111,7 @@ PerformanceAnalyzer.prototype.processTradeCompleted = function(trade) {
   const report = this.calculateReportStatistics();
   if(report) {
     this.logger.handleTrade(trade, report);
+    this.report = report;
     this.deferredEmit('performanceReport', report);
   }
 }
@@ -240,9 +244,8 @@ PerformanceAnalyzer.prototype.finalize = function(done) {
     return done();
   }
 
-  const report = this.calculateReportStatistics();
-  if(report) {
-    this.logger.finalize(report);
+  if(this.report) {
+    this.logger.finalize(this.report);
   }
   done();
 }
