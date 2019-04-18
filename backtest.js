@@ -102,7 +102,7 @@ const main = async () => {
           let config = _.cloneDeep(sampleConfig);
 
           console.log("Generate config...");
-          generateConfig(config, marketsAndPair[k], candleSizes[i], strategyGetData);
+          generateConfig(config, marketsAndPair[k], candleSizes[i], strategyGetData, dateRanges[j]);
 
           console.log("Generate config for prepare train data...");
           let trainDataName = generateConfigTrain(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].trainDaterange);
@@ -213,7 +213,7 @@ const generateNameFile = (train = true, marketsAndPair, strategyForBacktest, can
   return `data-for-backtest/${train ? "train" : "test"}_${fileName}.json`
 }
 
-const generateConfig = (config, marketsAndPair, candleSizes, strategyGetData) => {
+const generateConfig = (config, marketsAndPair, candleSizes, strategyGetData, dateRange) => {
   // Chuẩn bị data train để gửi cho model
   // Tắt hết pluggin
   for (let m in config) {
@@ -233,6 +233,14 @@ const generateConfig = (config, marketsAndPair, candleSizes, strategyGetData) =>
   // Chỉnh lại thuật toán để ghi candle ra file
   config["tradingAdvisor"].method = strategyGetData.name;
   config[strategyGetData.name] = strategyGetData.settings;
+
+  config["dateRange"] = dateRange;
+  config['miscellaneous'] = {
+    modelName: modelName,
+    modelType: modelType,
+    rollingStep: rollingStep,
+    lag: modelLag,
+  }
 }
 
 const generateConfigTrain = (config, marketsAndPair, strategyForBacktest, candleSizes, trainDaterange) => {

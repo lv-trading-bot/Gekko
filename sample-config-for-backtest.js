@@ -395,19 +395,32 @@ config.myBacktestResultExporter = {
    }, 
    table: {
     rawData: {
-      "backtest.tradingAdvisor.method": "Name",
-      "performanceReport.startPrice": "Begin Price",
-      "endPrice": "End Price",
-      "performanceReport.startBalance": "Begin Balance",
-      "performanceReport.balance": "End Balance",
+      // "backtest.tradingAdvisor.method": "Name",
+      // "performanceReport.startPrice": "Begin Price",
+      // "endPrice": "End Price",
+      // "performanceReport.startBalance": "Begin Balance",
+      // "performanceReport.balance": "End Balance",
+
     },
     recipe: {
-      "Start Time": `moment(get(this, "dates.start","")).format('YYYY-MM-DD HH:mm:ss')`,
-      "End time": `moment(get(this, "dates.end","")).format('YYYY-MM-DD HH:mm:ss')`,
-      "Buy": `_.filter(this.trades, trade => trade.action == "buy").length`,
-      "Sell": `_.filter(this.trades, trade => trade.action == "sell").length`,
-      "Market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
-      "Profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
+      // "Start Time": `moment(get(this, "dates.start","")).format('YYYY-MM-DD HH:mm:ss')`,
+      // "End time": `moment(get(this, "dates.end","")).format('YYYY-MM-DD HH:mm:ss')`,
+      // "Buy": `_.filter(this.trades, trade => trade.action == "buy").length`,
+      // "Sell": `_.filter(this.trades, trade => trade.action == "sell").length`,
+      // "Market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
+      // "Profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
+      "model_name": "`${config.miscellaneous.modelName}`",
+      "model_type": "`${config.miscellaneous.modelType}`",
+      "rolling_step": "`${config.miscellaneous.rollingStep}`",
+      "lag": "`${config.miscellaneous.lag}`",
+      "take_profit": "`${this.backtest.strategyParameters.takeProfit}`",
+      "stop_loss": "`${this.backtest.strategyParameters.stopLoss}`",
+      "expiration_period": "`${this.backtest.strategyParameters.expirationPeriod}`",
+      "train_daterange": "`${config.dateRange.trainDaterange.from}_${config.dateRange.trainDaterange.to}`",
+      "test_daterange": "`${config.dateRange.backtestDaterange.from}_${config.dateRange.backtestDaterange.from}`",
+      "candle_size": "this.backtest.tradingAdvisor.candleSize",
+      "Market": "`${this.performanceReport.market}%`",
+      "PnL": "`${this.performanceReport.profit} (${this.performanceReport.relativeProfit}%)`",
     }
    }
   }
