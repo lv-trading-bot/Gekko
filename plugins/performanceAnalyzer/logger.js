@@ -35,6 +35,7 @@ Logger.prototype.logReport = function (trade, report) {
 
   log.info(`(PROFIT REPORT) original balance:\t\t ${start} ${this.currency}`);
   log.info(`(PROFIT REPORT) current balance:\t\t ${current} ${this.currency}`);
+  log.info(`(PROFIT REPORT) lowest balance:\t\t\t ${report.lowestBalance} ${this.currency}`)
   log.info(
     `(PROFIT REPORT) profit:\t\t\t\t ${this.round(report.profit)} ${this.currency}`,
     `(${this.round(report.relativeProfit)}%)`

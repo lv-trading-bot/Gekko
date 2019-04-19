@@ -44,6 +44,7 @@ const PerformanceAnalyzer = function() {
   }
 
   this.portfolio = {};
+  this.lowestBalance = Number.MAX_SAFE_INTEGER;
   this.balance;
 
   this.start = {};
@@ -70,6 +71,7 @@ PerformanceAnalyzer.prototype.processPortfolioChange = function(event) {
   if(!this.start.portfolio) {
     this.start.portfolio = event;
   }
+  this.lowestBalance = (event.currency < this.lowestBalance) ? event.currency : this.lowestBalance;
 }
 
 PerformanceAnalyzer.prototype.processCandle = function(candle, done) {
@@ -229,6 +231,7 @@ PerformanceAnalyzer.prototype.calculateReportStatistics = function() {
     endPrice: this.endPrice,
     trades: this.trades,
     startBalance: this.start.balance,
+    lowestBalance: this.lowestBalance,
     exposure: percentExposure,
     sharpe,
     downside

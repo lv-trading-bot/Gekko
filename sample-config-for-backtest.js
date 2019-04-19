@@ -419,8 +419,13 @@ config.myBacktestResultExporter = {
       "train_daterange": "`${config.dateRange.trainDaterange.from}_${config.dateRange.trainDaterange.to}`",
       "test_daterange": "`${config.dateRange.backtestDaterange.from}_${config.dateRange.backtestDaterange.to}`",
       "candle_size": "this.backtest.tradingAdvisor.candleSize",
+      "Start Price": "this.performanceReport.startPrice",
+      "End Price": "this.performanceReport.endPrice",
       "Market": "`${this.performanceReport.market}%`",
-      "PnL": "`${this.performanceReport.profit} (${this.performanceReport.relativeProfit}%)`",
+      "PnL": "`${(this.performanceReport.profit + this.performanceReport.trades*config.paperTrader.feeMaker).toFixed(4)} (${(this.performanceReport.relativeProfit + this.performanceReport.trades*config.paperTrader.feeMaker*100/this.performanceReport.startBalance).toFixed(4)}%)`",
+      "PnL_withFee": "`${this.performanceReport.profit.toFixed(4)} (${this.performanceReport.relativeProfit.toFixed(4)}%)`",
+      "Lowest Balance": "this.performanceReport.lowestBalance.toFixed(4)",
+      "Changes vs Market": "`${(this.performanceReport.relativeProfit - this.performanceReport.market).toFixed(4)}`"
     }
    }
   }
