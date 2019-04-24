@@ -53,7 +53,7 @@ if(emitTrades) {
   Actor.prototype.processTradeInitiated = function (tradeInitiated) {
     var message = 'Trade initiated. ID: ' + tradeInitiated.id +
     '\nAction: ' + tradeInitiated.action + '\nPortfolio: ' +
-    tradeInitiated.portfolio + '\nBalance: ' + tradeInitiated.balance;
+    JSON.stringify(tradeInitiated.portfolio) + '\nBalance: ' + tradeInitiated.balance;
     this.bot.sendMessage(this.chatId, message);
   }
   
@@ -80,7 +80,7 @@ if(emitTrades) {
     '\nPrice: ' + tradeCompleted.price +
     '\nAmount: ' + tradeCompleted.amount +
     '\nCost: ' + tradeCompleted.cost +
-    '\nPortfolio: ' + tradeCompleted.portfolio +
+    '\nPortfolio: ' + JSON.stringify(tradeCompleted.portfolio) +
     '\nBalance: ' + tradeCompleted.balance +
     '\nFee percent: ' + tradeCompleted.feePercent +
     '\nEffective price: ' + tradeCompleted.effectivePrice;

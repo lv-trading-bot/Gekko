@@ -203,7 +203,7 @@ PerformanceAnalyzer.prototype.calculateReportStatistics = function() {
     * Math.sqrt(this.trades / (this.trades - 2));
 
   const report = {
-    momentEndTime: moment(_.cloneDeep(this.dates.end)),
+    momentEndTime: this.dates.end.clone(),
     startTime: this.dates.start.utc().format('YYYY-MM-DD HH:mm:ss'),
     endTime: this.dates.end.utc().format('YYYY-MM-DD HH:mm:ss'),
     timespan: timespan.humanize(),

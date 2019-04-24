@@ -9,7 +9,7 @@ const Broker = require(dirs.broker + '/gekkoBroker');
 
 require(dirs.gekko + '/exchange/dependencyCheck');
 
-const Trader = function(next) {
+const Trader = function (next) {
 
   _.bindAll(this);
 
@@ -24,11 +24,11 @@ const Trader = function(next) {
 
   try {
     this.broker = new Broker(this.brokerConfig);
-  } catch(e) {
+  } catch (e) {
     util.die(e.message);
   }
 
-  if(!this.broker.capabilities.gekkoBroker) {
+  if (!this.broker.capabilities.gekkoBroker) {
     util.die('This exchange is not yet supported');
   }
 
@@ -38,11 +38,11 @@ const Trader = function(next) {
     log.info('\t\t', this.portfolio.asset, this.brokerConfig.asset);
     log.info('\t', 'Balance:');
     log.info('\t\t', this.balance, this.brokerConfig.currency);
-    log.info('\t', 'Exposed:');
-    log.info('\t\t',
-      this.exposed ? 'yes' : 'no',
-      `(${(this.exposure * 100).toFixed(2)}%)`
-    );
+    // log.info('\t', 'Exposed:');
+    // log.info('\t\t',
+    //   this.exposed ? 'yes' : 'no',
+    //   `(${(this.exposure * 100).toFixed(2)}%)`
+    // );
     next();
   });
 
@@ -50,15 +50,17 @@ const Trader = function(next) {
   this.sendInitialPortfolio = false;
 
   setInterval(this.sync, 1000 * 60 * 10);
+  this.activeDoubleStopTriggers = [];
+  this.orders = [];
 }
 
 // teach our trader events
 util.makeEventEmitter(Trader);
 
-Trader.prototype.sync = function(next) {
+Trader.prototype.sync = function (next) {
   log.debug('syncing private data');
   this.broker.syncPrivateData(() => {
-    if(!this.price) {
+    if (!this.price) {
       this.price = this.broker.ticker.bid;
     }
 
@@ -67,33 +69,33 @@ Trader.prototype.sync = function(next) {
     this.setPortfolio();
     this.setBalance();
 
-    if(this.sendInitialPortfolio && !_.isEqual(oldPortfolio, this.portfolio)) {
+    if (this.sendInitialPortfolio && !_.isEqual(oldPortfolio, this.portfolio)) {
       this.relayPortfolioChange();
     }
 
     // balance is relayed every minute
     // no need to do it here.
 
-    if(next) {
+    if (next) {
       next();
     }
   });
 }
 
-Trader.prototype.relayPortfolioChange = function() {
+Trader.prototype.relayPortfolioChange = function () {
   this.deferredEmit('portfolioChange', {
     asset: this.portfolio.asset,
     currency: this.portfolio.currency
   });
 }
 
-Trader.prototype.relayPortfolioValueChange = function() {
+Trader.prototype.relayPortfolioValueChange = function () {
   this.deferredEmit('portfolioValueChange', {
     balance: this.balance
   });
 }
 
-Trader.prototype.setPortfolio = function() {
+Trader.prototype.setPortfolio = function () {
   this.portfolio = {
     currency: _.find(
       this.broker.portfolio.balances,
@@ -106,20 +108,20 @@ Trader.prototype.setPortfolio = function() {
   }
 }
 
-Trader.prototype.setBalance = function() {
+Trader.prototype.setBalance = function () {
   this.balance = this.portfolio.currency + this.portfolio.asset * this.price;
   this.exposure = (this.portfolio.asset * this.price) / this.balance;
   // if more than 10% of balance is in asset we are exposed
-  this.exposed = this.exposure > 0.1;
+  // this.exposed = this.exposure > 0.1;
 }
 
-Trader.prototype.processCandle = function(candle, done) {
+Trader.prototype.processCandle = function (candle, done) {
   this.price = candle.close;
   const previousBalance = this.balance;
   this.setPortfolio();
   this.setBalance();
 
-  if(!this.sendInitialPortfolio) {
+  if (!this.sendInitialPortfolio) {
     this.sendInitialPortfolio = true;
     this.deferredEmit('portfolioChange', {
       asset: this.portfolio.asset,
@@ -127,7 +129,7 @@ Trader.prototype.processCandle = function(candle, done) {
     });
   }
 
-  if(this.balance !== previousBalance) {
+  if (this.balance !== previousBalance) {
     // this can happen because:
     // A) the price moved and we have > 0 asset
     // B) portfolio got changed
@@ -137,12 +139,12 @@ Trader.prototype.processCandle = function(candle, done) {
   done();
 }
 
-Trader.prototype.processAdvice = function(advice) {
+Trader.prototype.processAdvice = function (advice) {
   let direction;
 
-  if(advice.recommendation === 'long') {
+  if (advice.recommendation === 'long') {
     direction = 'buy';
-  } else if(advice.recommendation === 'short') {
+  } else if (advice.recommendation === 'short') {
     direction = 'sell';
   } else {
     log.error('ignoring advice in unknown direction');
@@ -151,60 +153,65 @@ Trader.prototype.processAdvice = function(advice) {
 
   const id = 'trade-' + (++this.propogatedTrades);
 
-  if(this.order) {
-    if(this.order.side === direction) {
-      return log.info('ignoring advice: already in the process to', direction);
-    }
+  // if (this.order) {
+  //   if (this.order.side === direction) {
+  //     return log.info('ignoring advice: already in the process to', direction);
+  //   }
 
-    if(this.cancellingOrder) {
-      return log.info('ignoring advice: already cancelling previous', this.order.side, 'order');
-    }
+  //   if (this.cancellingOrder) {
+  //     return log.info('ignoring advice: already cancelling previous', this.order.side, 'order');
+  //   }
 
-    log.info('Received advice to', direction, 'however Gekko is already in the process to', this.order.side);
-    log.info('Canceling', this.order.side, 'order first');
-    return this.cancelOrder(id, advice, () => this.processAdvice(advice));
-  }
+  //   log.info('Received advice to', direction, 'however Gekko is already in the process to', this.order.side);
+  //   log.info('Canceling', this.order.side, 'order first');
+  //   return this.cancelOrder(id, advice, () => this.processAdvice(advice));
+  // }
 
   let amount;
 
-  if(direction === 'buy') {
+  if (direction === 'buy') {
 
-    if(this.exposed) {
-      log.info('NOT buying, already exposed');
-      return this.deferredEmit('tradeAborted', {
-        id,
-        adviceId: advice.id,
-        action: direction,
-        portfolio: this.portfolio,
-        balance: this.balance,
-        reason: "Portfolio already in position."
-      });
+    // if (this.exposed) {
+    //   log.info('NOT buying, already exposed');
+    //   return this.deferredEmit('tradeAborted', {
+    //     id,
+    //     adviceId: advice.id,
+    //     action: direction,
+    //     portfolio: this.portfolio,
+    //     balance: this.balance,
+    //     reason: "Portfolio already in position."
+    //   });
+    // }
+
+    // asset
+    if (advice.amount !== undefined) {
+      amount = advice.amount / this.price;
+    } else {
+      amount = this.portfolio.currency / this.price;
     }
-
-    amount = this.portfolio.currency / this.price * 0.95;
 
     log.info(
       'Trader',
       'Received advice to go long.',
-      'Buying ', this.brokerConfig.asset
+      'Buying ', amount
     );
 
-  } else if(direction === 'sell') {
+  } else if (direction === 'sell') {
 
-    if(!this.exposed) {
-      log.info('NOT selling, already no exposure');
-      return this.deferredEmit('tradeAborted', {
-        id,
-        adviceId: advice.id,
-        action: direction,
-        portfolio: this.portfolio,
-        balance: this.balance,
-        reason: "Portfolio already in position."
-      });
-    }
+    // if (!this.exposed) {
+    //   log.info('NOT selling, already no exposure');
+    //   return this.deferredEmit('tradeAborted', {
+    //     id,
+    //     adviceId: advice.id,
+    //     action: direction,
+    //     portfolio: this.portfolio,
+    //     balance: this.balance,
+    //     reason: "Portfolio already in position."
+    //   });
+    // }
 
     // clean up potential old stop trigger
-    if(this.activeStopTrigger) {
+    if (this.activeStopTrigger) {
       this.deferredEmit('triggerAborted', {
         id: this.activeStopTrigger.id,
         date: advice.date
@@ -215,19 +222,124 @@ Trader.prototype.processAdvice = function(advice) {
       delete this.activeStopTrigger;
     }
 
-    amount = this.portfolio.asset;
+    // asset
+    if (advice.amount !== undefined) {
+      amount = advice.amount;
+      if (amount > this.portfolio.asset) {
+        amount = this.portfolio.asset;
+      }
+    } else {
+      amount = this.portfolio.asset;
+    }
 
     log.info(
       'Trader',
       'Received advice to go short.',
-      'Selling ', this.brokerConfig.asset
+      'Selling ', amount
     );
   }
 
   this.createOrder(direction, amount, advice, id);
+  this.portfolio.currency
 }
 
-Trader.prototype.createOrder = function(side, amount, advice, id) {
+const checkValidBalance = (portfolio, price, action, asset) => {
+  let res = {
+    valid: true,
+    reason: null
+  }
+  if(action === 'buy') {
+    if(asset * price > portfolio.currency) {
+      res.valid = false;
+      res.reason = `Not enough monney to buy. (${asset * price}/${portfolio.currency})`;
+    }
+  } else if(action === 'sell') {
+    if(asset > portfolio.asset) {
+      res.valid = false;
+      res.reason = `Not enough asset to sell. (${asset}/${portfolio.asset})`;
+    }
+  }
+
+  return res;
+}
+
+Trader.prototype.createOrder = function (side, amount, advice, id) {
+  // Kiểm tra doublestop trigger
+  if (
+    amount === 0 &&
+    side === 'buy' &&
+    advice.trigger &&
+    advice.trigger.type === 'doubleStop'
+  ) 
+  {
+    const trigger = advice.trigger;
+    if (!trigger.id && (!trigger.stopLoss || !trigger.takeProfit || trigger.assetAmount < 0)) {
+      return log.warn(`[Papertrader] Please provide correct arguments for doubleStop trigger: (stopLoss, takeProfit, assetAmount)=(${trigger.stopLoss}, ${trigger.takeProfit}, ${trigger.assetAmount})`);
+    }
+
+    if (!trigger.id) {
+      const triggerId = 'trigger-' + (++this.propogatedTriggers);
+
+      this.deferredEmit('triggerCreated', {
+        id: triggerId,
+        at: advice.date,
+        type: 'doubleStop',
+        properties: {
+          initialStart: trigger.initialStart,
+          initialPrice: trigger.initialPrice,
+          currentInitialPrice: trigger.currentInitialPrice,
+          stopLoss: trigger.stopLoss,
+          takeProfit: trigger.takeProfit,
+          expires: moment(trigger.expires),
+          assetAmount: trigger.assetAmount
+        }
+      });
+
+      this.activeDoubleStopTriggers.push(
+        this.broker.createTrigger({
+          type: 'doubleStop',
+          onTrigger: this.onDoubleStopTrigger,
+          props: {
+            id: triggerId,
+            adviceId: advice.id,
+            initialStart: trigger.initialStart,
+            initialPrice: trigger.initialPrice,
+            currentInitialPrice: trigger.currentInitialPrice,
+            stopLoss: trigger.stopLoss,
+            takeProfit: trigger.takeProfit,
+            expires: moment(trigger.expires),
+            assetAmount: trigger.assetAmount,
+          }
+        })
+      )
+    } else if (trigger.id) {
+      // update trigger
+      for (let i = 0; i < this.activeDoubleStopTriggers.length; i++) {
+        let curTrigger = this.activeDoubleStopTriggers[i].trigger;
+        if (curTrigger.id === trigger.id) {
+          curTrigger.expires = trigger.expires;
+          curTrigger.currentInitialPrice = trigger.currentInitialPrice;
+          this.deferredEmit('triggerUpdated', {
+            id: curTrigger.id,
+            at: curTrigger.initialStart,
+            type: 'doubleStop',
+            properties: {
+              initialStart: curTrigger.initialStart,
+              initialPrice: curTrigger.initialPrice,
+              currentInitialPrice: curTrigger.currentInitialPrice,
+              stopLoss: curTrigger.stopLoss,
+              takeProfit: curTrigger.takeProfit,
+              expires: moment(curTrigger.expires),
+              assetAmount: curTrigger.assetAmount
+            }
+          });
+          break;
+        }
+      }
+    }
+    return;
+  }
+
   const type = 'sticky';
 
   // NOTE: this is the best check we can do at this point
@@ -236,8 +348,8 @@ Trader.prototype.createOrder = function(side, amount, advice, id) {
   // catch non standard errors (lot size, price filter) on
   // exchanges that have them.
   const check = this.broker.isValidOrder(amount, this.price);
-
-  if(!check.valid) {
+  // Kiểm tra order bình thường
+  if (!check.valid) {
     log.warn('NOT creating order! Reason:', check.reason);
     return this.deferredEmit('tradeAborted', {
       id,
@@ -249,6 +361,23 @@ Trader.prototype.createOrder = function(side, amount, advice, id) {
     });
   }
 
+  // Check Valid balance
+  const checkBalance = checkValidBalance(this.portfolio, this.price, side, amount);
+  if (!checkBalance.valid) {
+    log.warn('NOT creating order! Reason:', checkBalance.reason);
+    return this.deferredEmit('tradeAborted', {
+      id,
+      adviceId: advice.id,
+      action: side,
+      portfolio: this.portfolio,
+      balance: this.balance,
+      reason: checkBalance.reason
+    });
+  }
+
+  let order = this.broker.createOrder(type, side, amount);
+  this.orders.push(order);
+
   log.debug('Creating order to', side, amount, this.brokerConfig.asset);
 
   this.deferredEmit('tradeInitiated', {
@@ -259,15 +388,14 @@ Trader.prototype.createOrder = function(side, amount, advice, id) {
     balance: this.balance
   });
 
-  this.order = this.broker.createOrder(type, side, amount);
+  order.on('fill', f => log.info('[ORDER] partial', side, 'fill, total filled:', f));
+  order.on('statusChange', s => log.debug('[ORDER] statusChange:', s));
 
-  this.order.on('fill', f => log.info('[ORDER] partial', side, 'fill, total filled:', f));
-  this.order.on('statusChange', s => log.debug('[ORDER] statusChange:', s));
-
-  this.order.on('error', e => {
+  order.on('error', e => {
     log.error('[ORDER] Gekko received error from GB:', e.message);
     log.debug(e);
-    this.order = null;
+    // order = null;
+    _.remove(this.orders, ord => ord.id === order.id);
     this.cancellingOrder = false;
 
     this.deferredEmit('tradeErrored', {
@@ -278,13 +406,13 @@ Trader.prototype.createOrder = function(side, amount, advice, id) {
     });
 
   });
-  this.order.on('completed', () => {
-    this.order.createSummary((err, summary) => {
-      if(!err && !summary) {
+  order.on('completed', () => {
+    order.createSummary((err, summary) => {
+      if (!err && !summary) {
         err = new Error('GB returned an empty summary.')
       }
 
-      if(err) {
+      if (err) {
         log.error('Error while creating summary:', err);
         return this.deferredEmit('tradeErrored', {
           id,
@@ -295,17 +423,18 @@ Trader.prototype.createOrder = function(side, amount, advice, id) {
       }
 
       log.info('[ORDER] summary:', summary);
-      this.order = null;
+      // order = null;
+      _.remove(this.orders, ord => ord.id === order.id);
       this.sync(() => {
 
         let cost;
-        if(_.isNumber(summary.feePercent)) {
+        if (_.isNumber(summary.feePercent)) {
           cost = summary.feePercent / 100 * summary.amount * summary.price;
         }
 
         let effectivePrice;
-        if(_.isNumber(summary.feePercent)) {
-          if(side === 'buy') {
+        if (_.isNumber(summary.feePercent)) {
+          if (side === 'buy') {
             effectivePrice = summary.price * (1 + summary.feePercent / 100);
           } else {
             effectivePrice = summary.price * (1 - summary.feePercent / 100);
@@ -326,10 +455,11 @@ Trader.prototype.createOrder = function(side, amount, advice, id) {
           balance: this.balance,
           date: summary.date,
           feePercent: summary.feePercent,
-          effectivePrice
+          effectivePrice,
+          amountWithFee: summary.amount
         });
 
-        if(
+        if (
           side === 'buy' &&
           advice.trigger &&
           advice.trigger.type === 'trailingStop'
@@ -369,7 +499,7 @@ Trader.prototype.createOrder = function(side, amount, advice, id) {
   });
 }
 
-Trader.prototype.onStopTrigger = function(price) {
+Trader.prototype.onStopTrigger = function (price) {
   log.info(`TrailingStop trigger "${this.activeStopTrigger.id}" fired! Observed price was ${price}`);
 
   this.deferredEmit('triggerFired', {
@@ -387,26 +517,72 @@ Trader.prototype.onStopTrigger = function(price) {
   this.processAdvice(adviceMock);
 }
 
-Trader.prototype.cancelOrder = function(id, advice, next) {
+Trader.prototype.onDoubleStopTrigger = function ({id, assetAmount, roundTrip}) {
 
-  if(!this.order) {
-    return next();
+  const date = moment().utc();
+
+  let triggerWrapper = _.find(this.activeDoubleStopTriggers, function (item) {
+    return item.trigger.id === id;
+  })
+
+  triggerWrapper.cancel();
+
+  const trigger = triggerWrapper.trigger;
+
+  const adviceMock = {
+    recommendation: 'short',
+    id,
+    amount: assetAmount
   }
 
-  this.cancellingOrder = true;
+  this.processAdvice(adviceMock);
 
-  this.order.removeAllListeners();
-  this.order.cancel();
-  this.order.once('completed', () => {
-    this.order = null;
-    this.cancellingOrder = false;
-    this.deferredEmit('tradeCancelled', {
-      id,
-      adviceId: advice.id,
-      date: moment()
-    });
-    this.sync(next);
-  });
+  this.deferredEmit('triggerFired', roundTrip);
+
+  this.relayPortfolioChange();
+  this.relayPortfolioValueChange();
+
+  // this.deferredEmit('tradeCompleted', {
+  //   id: _.cloneDeep(this.tradeId),
+  //   adviceId: _.cloneDeep(trigger.adviceId),
+  //   action: 'sell',
+  //   cost,
+  //   amount: assetAmount,
+  //   price: _.cloneDeep(this.price),
+  //   portfolio: _.cloneDeep(this.portfolio),
+  //   balance: this.getBalance(),
+  //   date,
+  //   effectivePrice,
+  //   feePercent: _.cloneDeep(this.rawFee),
+  //   amountWithFee
+  // });
+
+  this.activeDoubleStopTriggers = this.activeDoubleStopTriggers.filter(function (item) {
+    return item.trigger.id !== id
+  })
+
 }
+
+// Trader.prototype.cancelOrder = function (id, advice, next) {
+
+//   if (!this.order) {
+//     return next();
+//   }
+
+//   this.cancellingOrder = true;
+
+//   this.order.removeAllListeners();
+//   this.order.cancel();
+//   this.order.once('completed', () => {
+//     this.order = null;
+//     this.cancellingOrder = false;
+//     this.deferredEmit('tradeCancelled', {
+//       id,
+//       adviceId: advice.id,
+//       date: moment()
+//     });
+//     this.sync(next);
+//   });
+// }
 
 module.exports = Trader;

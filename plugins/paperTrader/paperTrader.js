@@ -349,7 +349,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
   }
 }
 
-PaperTrader.prototype.onDoubleStopTrigger = async function (id, assetAmount, roundTrip) {
+PaperTrader.prototype.onDoubleStopTrigger = async function ({id, assetAmount, roundTrip}) {
 
   const date = this.now();
 
@@ -404,7 +404,8 @@ PaperTrader.prototype.onStopTrigger = async function () {
   const {
     cost,
     amount,
-    effectivePrice
+    effectivePrice,
+    amountWithFee
   } = await this.updatePosition('short');
 
   this.relayPortfolioChange();
@@ -421,7 +422,8 @@ PaperTrader.prototype.onStopTrigger = async function () {
     balance: this.getBalance(),
     date,
     effectivePrice,
-    feePercent: this.rawFee
+    feePercent: this.rawFee,
+    amountWithFee
   });
 
   delete this.activeStopTrigger;
