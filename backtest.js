@@ -20,7 +20,7 @@ const marketsAndPair = [{
 
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
-const candleSizes = [15]
+const candleSizes = [30]
 // const candleSizes = [60]
 //NOTE: MUST INCLUDE TIMEZONE, gekko uses UTC inside
 const dateRanges = [
@@ -38,8 +38,8 @@ const dateRanges = [
   //tăng mạnh
   {
     trainDaterange: {
-      from: "2017-11-04T18:00:00.000Z",
-      to: "2018-02-04T18:00:00.000Z"
+      from: "2017-11-04T12:00:00.000Z",
+      to: "2018-02-04T12:00:00.000Z"
     },
     backtestDaterange: {
       from: "2018-02-05T00:00:00.000Z",
@@ -49,8 +49,8 @@ const dateRanges = [
   //giảm mạnh
   {
     trainDaterange: {
-      from: "2017-12-04T18:00:00.000Z",
-      to: "2018-03-04T18:00:00.000Z"
+      from: "2017-12-04T12:00:00.000Z",
+      to: "2018-03-04T12:00:00.000Z"
     },
     backtestDaterange: {
       from: "2018-03-05T00:00:00.000Z",
@@ -60,8 +60,8 @@ const dateRanges = [
   //tăng nhẹ
   {
     trainDaterange: {
-      from: "2018-10-20T18:00:00.000Z",
-      to: "2019-01-20T18:00:00.000Z"
+      from: "2018-10-20T12:00:00.000Z",
+      to: "2019-01-20T12:00:00.000Z"
     },
     backtestDaterange: {
       from: "2019-01-21T00:00:00.000Z",
@@ -71,8 +71,8 @@ const dateRanges = [
   //giảm nhẹ
   {
     trainDaterange: {
-      from: "2018-05-30T18:00:00.000Z",
-      to: "2018-08-31T18:00:00.000Z"
+      from: "2018-05-30T12:00:00.000Z",
+      to: "2018-08-31T12:00:00.000Z"
     },
     backtestDaterange: {
       from: "2018-09-01T00:00:00.000Z",
@@ -82,8 +82,8 @@ const dateRanges = [
   //gần đây
   {
     trainDaterange: {
-      from: "2018-11-28T18:00:00.000Z",
-      to: "2019-02-28T18:00:00.000Z"
+      from: "2018-11-28T12:00:00.000Z",
+      to: "2019-02-28T12:00:00.000Z"
     },
     backtestDaterange: {
       from: "2019-03-01T00:00:00.000Z",
