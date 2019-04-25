@@ -63,8 +63,8 @@ class DoubleStop extends EventEmitter {
         });
         return;
       }
-      //console.log(candle, this.expires, candle.isAfter(this.expires))
-      if (moment(candle.start).isAfter(this.expires)) {
+      
+      if (moment(candle.start.clone().add(61, 's')).isAfter(this.expires)) {
         this.trigger({
           what: "EXPIRES",
           meta: {
@@ -100,8 +100,7 @@ class DoubleStop extends EventEmitter {
         });
         return;
       }
-      //console.log(candle, this.expires, candle.isAfter(this.expires))
-      if (moment().utc().isAfter(this.expires)) {
+      if (moment().add(1, 's').utc().isAfter(this.expires)) {
         this.trigger({
           what: "EXPIRES",
           meta: {
