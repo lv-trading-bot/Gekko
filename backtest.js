@@ -100,7 +100,7 @@ const strategyForBacktest = [{
     amountForOneTrade: 100,
     expirationPeriod: 24,
     backtest: true,
-    dataFile: "data-for-backtest/backtest-data.json",
+    dataFile: "",
     stopTradeLimit: -5000,
     // totalWatchCandles: 24,
     breakDuration: -1,
@@ -152,44 +152,51 @@ const main = async () => {
           console.log("Generate config...");
           generateConfig(config, marketsAndPair[k], candleSizes[i], strategyGetData, dateRanges[j]);
 
-          console.log("Generate config for prepare train data...");
-          let trainDataName = generateConfigTrain(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].trainDaterange);
-          // Ghi file config train
-          console.log("Write config for prepare train data...");
-          fs.writeFileSync(nameConfig, await generateConfigString(config));
+          // console.log("Generate config for prepare train data...");
+          // let trainDataName = generateConfigTrain(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].trainDaterange);
+          // // Ghi file config train
+          // console.log("Write config for prepare train data...");
+          // fs.writeFileSync(nameConfig, await generateConfigString(config));
 
           // // Chạy backtest để chuẩn bị train data
           // console.log("Run gekko for prepare train data...");
           // await runGekkoProcess(nameConfig);
 
-          console.log("Generate config for prepare test data...");
-          let testDataName = generateConfigTest(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].backtestDaterange);
+          // console.log("Generate config for prepare test data...");
+          // let testDataName = generateConfigTest(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].backtestDaterange);
           // Ghi file config backtest
-          console.log("Write config for prepare test data...");
-          fs.writeFileSync(nameConfig, await generateConfigString(config));
+          // console.log("Write config for prepare test data...");
+          // fs.writeFileSync(nameConfig, await generateConfigString(config));
 
           // // Chạy backtest để chuẩn bị backtest data
           // console.log("Run gekko for prepare test data...");
           // await runGekkoProcess(nameConfig);
 
-          // Gửi train data và test data cho python, tạm thời bỏ
+          // Gửi train data và test data cho python -> bỏ
           let trainData = {}
           let testData = {}
-          console.log("Connect python ...");
+          console.log("Connect to python ...");
           let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName, modelType, rollingStep, modelLag, strategyForBacktest[l]);
-          console.log('Connect python done ...')
+          console.log('Connect to python done ...')
           if (result) {
-            let backtestData = result;
+            //Create an unique ID for predicted data file and config file
+            randomNumber = Math.floor((Math.random() * 10000000) + 1)
+            id = `${moment().valueOf()}_${randomNumber}`
+            strategyForBacktest[l].settings.dataFile = `data-for-backtest/${id}.json`
+
             // Write backtest data
-            console.log("Write backtest data for backtest ...");
-            fs.writeFileSync(strategyForBacktest[l].settings.dataFile, JSON.stringify(backtestData));
+            console.log("Write predicted data file for backtest ...");
+            fs.writeFileSync(strategyForBacktest[l].settings.dataFile, JSON.stringify(result));
+
             console.log("Generate config for backtest ...");
             generateConfigBacktest(config, dateRanges[j].backtestDaterange, strategyForBacktest[l]);
+
             // Ghi file config để backtest
-            console.log("Write config for backtest ...");
-            fs.writeFileSync(nameConfig, await generateConfigString(config));
+            console.log("Write config file for backtest ...");
+            backtestFileName = `backtestConfigs/${id}.js`
+            fs.writeFileSync(backtestFileName, await generateConfigString(config));
             console.log("Run gekko for backtest test data...");
-            await runGekkoProcess(nameConfig)
+            await runGekkoProcess(backtestFileName)
           }
         }
         //
@@ -266,13 +273,13 @@ const generateConfig = (config, marketsAndPair, candleSizes, strategyGetData, da
   // Tắt hết pluggin
   for (let m in config) {
     if (_.isObject(config[m]))
-      config[m].enable = false;
+      config[m].enabled = false;
   }
   // Bật lại những pluggin cần thiết
   let plugginEnable = ["tradingAdvisor", "paperTrader", "performanceAnalyzer"];
   for (let m = 0; m < plugginEnable.length; m++) {
     if (_.isObject(config[plugginEnable[m]]))
-      config[plugginEnable[m]].enable = true;
+      config[plugginEnable[m]].enabled = true;
   }
   // Chỉnh sàn + cặp tiền
   config["watch"] = marketsAndPair;

@@ -53,3 +53,4 @@ exchange/nusadua
 data-for-backtest/*
 Export--*.csv
 backtestHistory/*
+backtestConfigs/*
