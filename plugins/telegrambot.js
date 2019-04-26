@@ -54,24 +54,32 @@ if(emitTrades) {
     var message = 'Trade initiated. ID: ' + tradeInitiated.id +
     '\nAction: ' + tradeInitiated.action + '\nPortfolio: ' +
     JSON.stringify(tradeInitiated.portfolio) + '\nBalance: ' + tradeInitiated.balance;
-    this.bot.sendMessage(this.chatId, message);
+    for (let i = 0; i < this.subscribers.length; i++) {
+      this.bot.sendMessage(this.subscribers[i], message);
+    }
   }
   
   Actor.prototype.processTradeCancelled = function (tradeCancelled) {
     var message = 'Trade cancelled. ID: ' + tradeCancelled.id;
-    this.bot.sendMessage(this.chatId, message);
+    for (let i = 0; i < this.subscribers.length; i++) {
+      this.bot.sendMessage(this.subscribers[i], message);
+    }
   }
   
   Actor.prototype.processTradeAborted = function (tradeAborted) {
     var message = 'Trade aborted. ID: ' + tradeAborted.id +
     '\nNot creating order! Reason: ' + tradeAborted.reason;
-    this.bot.sendMessage(this.chatId, message);
+    for (let i = 0; i < this.subscribers.length; i++) {
+      this.bot.sendMessage(this.subscribers[i], message);
+    }
   }
   
   Actor.prototype.processTradeErrored = function (tradeErrored) {
     var message = 'Trade errored. ID: ' + tradeErrored.id +
     '\nReason: ' + tradeErrored.reason;
-    this.bot.sendMessage(this.chatId, message);
+    for (let i = 0; i < this.subscribers.length; i++) {
+      this.bot.sendMessage(this.subscribers[i], message);
+    }
   }
   
   Actor.prototype.processTradeCompleted = function (tradeCompleted) {
@@ -84,7 +92,9 @@ if(emitTrades) {
     '\nBalance: ' + tradeCompleted.balance +
     '\nFee percent: ' + tradeCompleted.feePercent +
     '\nEffective price: ' + tradeCompleted.effectivePrice;
-    this.bot.sendMessage(this.chatId, message); 
+    for (let i = 0; i < this.subscribers.length; i++) {
+      this.bot.sendMessage(this.subscribers[i], message);
+    } 
   }
 }
 

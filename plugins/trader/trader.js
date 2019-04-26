@@ -9,6 +9,8 @@ const Broker = require(dirs.broker + '/gekkoBroker');
 
 require(dirs.gekko + '/exchange/dependencyCheck');
 
+const nameFileSaveStateTrigger = "triggersOfTrader";
+
 const Trader = function (next) {
 
   _.bindAll(this);
@@ -32,6 +34,8 @@ const Trader = function (next) {
     util.die('This exchange is not yet supported');
   }
 
+  this.activeDoubleStopTriggers = [];
+
   this.sync(() => {
     log.info('\t', 'Portfolio:');
     log.info('\t\t', this.portfolio.currency, this.brokerConfig.currency);
@@ -43,6 +47,7 @@ const Trader = function (next) {
     //   this.exposed ? 'yes' : 'no',
     //   `(${(this.exposure * 100).toFixed(2)}%)`
     // );
+    this.loadTriggers();
     next();
   });
 
@@ -50,12 +55,45 @@ const Trader = function (next) {
   this.sendInitialPortfolio = false;
 
   setInterval(this.sync, 1000 * 60 * 10);
-  this.activeDoubleStopTriggers = [];
   this.orders = [];
 }
 
 // teach our trader events
 util.makeEventEmitter(Trader);
+
+Trader.prototype.loadTriggers = function () {
+  let triggers = [];
+  try {
+    triggers = util.getTriggersStateFromFile(nameFileSaveStateTrigger);
+    let totalAssetFromTriggers = 0;
+    let triggerId = "";
+
+    for (let i = 0; i < triggers.length; i++) {
+      totalAssetFromTriggers += parseFloat(triggers[i].assetAmount);
+    }
+
+    // Trường hợp đủ asset thì load toàn bộ trigger lên
+    if (totalAssetFromTriggers - (0,001 * totalAssetFromTriggers) <= this.portfolio.asset) {
+      _.forEach(triggers, trigger => {
+        triggerId = 'trigger-' + (++this.propogatedTriggers);
+        this.activeDoubleStopTriggers.push(
+          this.broker.createTrigger({
+            type: 'doubleStop',
+            onTrigger: this.onDoubleStopTrigger,
+            props: {
+              ...trigger,
+              id: triggerId,
+              initialStart: moment(trigger.initialStart),
+              expires: moment(trigger.expires),
+            }
+          })
+        )
+      })
+    }
+  } catch (error) {
+
+  }
+}
 
 Trader.prototype.sync = function (next) {
   log.debug('syncing private data');
@@ -120,6 +158,8 @@ Trader.prototype.processCandle = function (candle, done) {
   const previousBalance = this.balance;
   this.setPortfolio();
   this.setBalance();
+
+  log.info('Number of triggers: ', this.activeDoubleStopTriggers.length);
 
   if (!this.sendInitialPortfolio) {
     this.sendInitialPortfolio = true;
@@ -248,13 +288,13 @@ const checkValidBalance = (portfolio, price, action, asset) => {
     valid: true,
     reason: null
   }
-  if(action === 'buy') {
-    if(asset * price > portfolio.currency) {
+  if (action === 'buy') {
+    if (asset * price > portfolio.currency) {
       res.valid = false;
       res.reason = `Not enough monney to buy. (${asset * price}/${portfolio.currency})`;
     }
-  } else if(action === 'sell') {
-    if(asset > portfolio.asset) {
+  } else if (action === 'sell') {
+    if (asset > portfolio.asset) {
       res.valid = false;
       res.reason = `Not enough asset to sell. (${asset}/${portfolio.asset})`;
     }
@@ -270,8 +310,7 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
     side === 'buy' &&
     advice.trigger &&
     advice.trigger.type === 'doubleStop'
-  ) 
-  {
+  ) {
     const trigger = advice.trigger;
     if (!trigger.id && (!trigger.stopLoss || !trigger.takeProfit || trigger.assetAmount < 0)) {
       return log.warn(`[Papertrader] Please provide correct arguments for doubleStop trigger: (stopLoss, takeProfit, assetAmount)=(${trigger.stopLoss}, ${trigger.takeProfit}, ${trigger.assetAmount})`);
@@ -312,6 +351,7 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
           }
         })
       )
+      util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, true);
     } else if (trigger.id) {
       // update trigger
       for (let i = 0; i < this.activeDoubleStopTriggers.length; i++) {
@@ -333,6 +373,7 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
               assetAmount: curTrigger.assetAmount
             }
           });
+          util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, true);
           break;
         }
       }
@@ -517,7 +558,7 @@ Trader.prototype.onStopTrigger = function (price) {
   this.processAdvice(adviceMock);
 }
 
-Trader.prototype.onDoubleStopTrigger = function ({id, assetAmount, roundTrip}) {
+Trader.prototype.onDoubleStopTrigger = function ({ id, assetAmount, roundTrip }) {
 
   const date = moment().utc();
 
@@ -542,24 +583,11 @@ Trader.prototype.onDoubleStopTrigger = function ({id, assetAmount, roundTrip}) {
   this.relayPortfolioChange();
   this.relayPortfolioValueChange();
 
-  // this.deferredEmit('tradeCompleted', {
-  //   id: _.cloneDeep(this.tradeId),
-  //   adviceId: _.cloneDeep(trigger.adviceId),
-  //   action: 'sell',
-  //   cost,
-  //   amount: assetAmount,
-  //   price: _.cloneDeep(this.price),
-  //   portfolio: _.cloneDeep(this.portfolio),
-  //   balance: this.getBalance(),
-  //   date,
-  //   effectivePrice,
-  //   feePercent: _.cloneDeep(this.rawFee),
-  //   amountWithFee
-  // });
-
   this.activeDoubleStopTriggers = this.activeDoubleStopTriggers.filter(function (item) {
     return item.trigger.id !== id
   })
+
+  util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, true);
 
 }
 

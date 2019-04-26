@@ -17,6 +17,9 @@ const log = require(dirs.core + 'log');
 const TrailingStop = require(dirs.broker + 'triggers/trailingStop');
 const DoubleStop = require(dirs.broker + 'triggers/doubleStop');
 
+const nameFileSaveStateTrigger = "triggersOfPaperTrader";
+const nameFileSavePortfolio = "portfolioOfPaperTrader";
+
 const PaperTrader = function () {
   _.bindAll(this);
 
@@ -31,9 +34,13 @@ const PaperTrader = function () {
   this.currency = watchConfig.currency;
   this.asset = watchConfig.asset;
 
-  this.portfolio = {
-    asset: calcConfig.simulationBalance.asset,
-    currency: calcConfig.simulationBalance.currency,
+  try {
+    this.portfolio = util.getCurrenPortfolio(nameFileSavePortfolio);
+  } catch (err) {
+    this.portfolio = {
+      asset: calcConfig.simulationBalance.asset,
+      currency: calcConfig.simulationBalance.currency,
+    }
   }
 
   this.balance = false;
@@ -46,7 +53,39 @@ const PaperTrader = function () {
   this.propogatedTriggers = 0;
 
   this.activeDoubleStopTriggers = [];
+  this.loadTriggers();
   this.exchange = new (require('./getPriceFromOrderExchange/' + exchange))(asset, currency);
+}
+
+PaperTrader.prototype.loadTriggers = function () {
+  let triggers = [];
+  try {
+    triggers = util.getTriggersStateFromFile(nameFileSaveStateTrigger);
+
+    let totalAssetFromTriggers = 0;
+    let triggerId = "";
+
+    _.forEach(triggers, trigger => {
+      totalAssetFromTriggers += parseFloat(trigger.assetAmount);
+      triggerId = 'trigger-' + (++this.propogatedTriggers);
+      this.activeDoubleStopTriggers.push(
+        new DoubleStop({
+          ...trigger,
+          id: triggerId,
+          initialStart: moment(trigger.initialStart),
+          expires: moment(trigger.expires),
+          onTrigger: this.onDoubleStopTrigger
+        })
+      )
+    })
+
+    // Trường hợp k đủ asset thì cancel toàn bộ trigger vừa load lên
+    if(totalAssetFromTriggers > this.portfolio.asset) {
+      this.activeDoubleStopTriggers = [];
+    }
+  } catch (error) {
+
+  }
 }
 
 PaperTrader.prototype.isValidAdvice = function (advice) {
@@ -319,6 +358,8 @@ PaperTrader.prototype.createTrigger = function (advice) {
           onTrigger: this.onDoubleStopTrigger
         })
       )
+      util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
+      util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
     } else if (trigger.id) {
       // update trigger
       for (let i = 0; i < this.activeDoubleStopTriggers.length; i++) {
@@ -340,6 +381,8 @@ PaperTrader.prototype.createTrigger = function (advice) {
               assetAmount: curTrigger.assetAmount
             }
           });
+          util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
+          util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
           break;
         }
       }
@@ -349,7 +392,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
   }
 }
 
-PaperTrader.prototype.onDoubleStopTrigger = async function ({id, assetAmount, roundTrip}) {
+PaperTrader.prototype.onDoubleStopTrigger = async function ({ id, assetAmount, roundTrip }) {
 
   const date = this.now();
 
@@ -389,6 +432,8 @@ PaperTrader.prototype.onDoubleStopTrigger = async function ({id, assetAmount, ro
   this.activeDoubleStopTriggers = this.activeDoubleStopTriggers.filter(function (item) {
     return item.id !== id
   })
+  util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
+  util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
 
 }
 
@@ -430,6 +475,7 @@ PaperTrader.prototype.onStopTrigger = async function () {
 }
 
 PaperTrader.prototype.processCandle = function (candle, done) {
+  log.info('Number of triggers: ', this.activeDoubleStopTriggers.length);
   this.price = candle.close;
   this.candle = candle;
 
