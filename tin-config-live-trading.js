@@ -38,9 +38,9 @@ config.tradingAdvisor = {
 }
 
 config['OMLBCTWithStopTradePaperTrade'] = {
-  stopLoss: -0.005,
-  takeProfit: 0.01,
-  amountForOneTrade: 10000,
+  stopLoss: -5,
+  takeProfit: 2,
+  amountForOneTrade: 12,
   expirationPeriod: 24,
   stopTradeLimit: -100,
   // totalWatchCandles: 24,
@@ -49,7 +49,7 @@ config['OMLBCTWithStopTradePaperTrade'] = {
 
 // do you want Gekko to simulate the profit of the strategy's own advice?
 config.paperTrader = {
-  enabled: true,
+  enabled: false,
   // report the profit in the currency or the asset?
   reportInCurrency: true,
   // start balance, on what the current balance is compared with
@@ -76,15 +76,15 @@ config.performanceAnalyzer = {
 // Enabling this will activate trades for the market being
 // watched by `config.watch`.
 config.trader = {
-  enabled: false,
-  key: '',
-  secret: '',
+  enabled: true,
+  key: 'G1eb3IOydZvwfdkPzgONwoDyZp7zNMOIKbQL4c6RMR2UGuHmV7dfT5rrXqOu4WOq',
+  secret: '7llHg9BQUXGqOUGhJsK4S0Cf6MFhhVDKoxIP6xn3ymg5V0ud6RenjayAwHbVpHj8',
   username: '', // your username, only required for specific exchanges.
   passphrase: '', // GDAX, requires a passphrase.
 }
 
 config.eventLogger = {
-  enabled: true,
+  enabled: false,
   // optionally pass a whitelist of events to log, if not past
   // the eventLogger will log _all_ events.
   // whitelist: ['portfolioChange', 'portfolioValueChange']
@@ -101,7 +101,7 @@ config.pushover = {
 
 // want Gekko to send a mail on buy or sell advice?
 config.mailer = {
-  enabled: false,       // Send Emails if true, false to turn off
+  enabled: true,       // Send Emails if true, false to turn off
   sendMailOnStart: true,    // Send 'Gekko starting' message if true, not if false
 
   email: 'phuotm6tet@gmail.com',    // Your Gmail address
@@ -172,7 +172,7 @@ config.ircbot = {
 }
 
 config.telegrambot = {
-  enabled: false,
+  enabled: true,
   // Receive notifications for trades and warnings/errors related to trading
   emitTrades: true,
   token: '851670778:AAE3MQ0Jz1IqX-yDQhAfHuO43E22_oRYRQ4',

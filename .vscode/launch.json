@@ -18,5 +18,12 @@
             "program": "${workspaceFolder}\\gekko",
             "args": ["-c", "tin-config-paper-trading.js"]
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Live trading",
+            "program": "${workspaceFolder}\\gekko",
+            "args": ["-c", "tin-config-live-trading.js"]
+        },
     ]
 }

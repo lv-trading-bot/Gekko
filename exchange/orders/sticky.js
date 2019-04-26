@@ -327,7 +327,7 @@ class StickyOrder extends BaseOrder {
     }
 
     console.log(new Date, '[sticky order] FATAL ERROR', error.message);
-    console.log(new Date, error);
+    // console.log(new Date, error);
     this.status = states.ERROR;
     this.emitStatus();
     this.error = error;
@@ -378,7 +378,13 @@ class StickyOrder extends BaseOrder {
 
     this.api.cancelOrder(this.id, (err, filled, data) => {
       if(this.handleError(err)) {
-        console.log(new Date, 'error move');
+        // Trường hợp đã mua được rồi mà vẫn cancle
+        if(('' + err).indexOf('-2011') >= 0) {
+          // Check lại order
+          this.checkOrder();
+        } else {
+          console.log(new Date, 'error move');
+        }
         return;
       }
 
