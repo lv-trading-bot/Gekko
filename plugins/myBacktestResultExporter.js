@@ -168,11 +168,11 @@ MyBacktestResultReporter.prototype.writeToDisk = function(backtest, next) {
 
     if(err) {
       let strData = "";
-      // Write info
-      for(let key in dataOut.info) {
-        let value = get(this, key, "");
-        strData += `${dataOut.info[key]}: ${value}\n`;
-      }
+      // // Write info
+      // for(let key in dataOut.info) {
+      //   let value = get(this, key, "");
+      //   strData += `${dataOut.info[key]}: ${value}\n`;
+      // }
       // Write Table header
       for(let key in table.rawData) {
         strData += `${table.rawData[key]},`;

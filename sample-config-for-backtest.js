@@ -143,7 +143,7 @@ config.paperTrader = {
     currency: 5000,
   },
   // how much fee in % does each trade cost?
-  feeMaker: 0,
+  feeMaker: 0.1,
   feeTaker: 0,
   feeUsing: 'maker',
   // how much slippage/spread should Gekko assume per trade?
@@ -395,19 +395,37 @@ config.myBacktestResultExporter = {
    }, 
    table: {
     rawData: {
-      "backtest.tradingAdvisor.method": "Name",
-      "performanceReport.startPrice": "Begin Price",
-      "endPrice": "End Price",
-      "performanceReport.startBalance": "Begin Balance",
-      "performanceReport.balance": "End Balance",
+      // "backtest.tradingAdvisor.method": "Name",
+      // "performanceReport.startPrice": "Begin Price",
+      // "endPrice": "End Price",
+      // "performanceReport.startBalance": "Begin Balance",
+      // "performanceReport.balance": "End Balance",
+
     },
     recipe: {
-      "Start Time": `moment(get(this, "dates.start","")).format('YYYY-MM-DD HH:mm:ss')`,
-      "End time": `moment(get(this, "dates.end","")).format('YYYY-MM-DD HH:mm:ss')`,
-      "Buy": `_.filter(this.trades, trade => trade.action == "buy").length`,
-      "Sell": `_.filter(this.trades, trade => trade.action == "sell").length`,
-      "Market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
-      "Profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
+      // "Start Time": `moment(get(this, "dates.start","")).format('YYYY-MM-DD HH:mm:ss')`,
+      // "End time": `moment(get(this, "dates.end","")).format('YYYY-MM-DD HH:mm:ss')`,
+      // "Buy": `_.filter(this.trades, trade => trade.action == "buy").length`,
+      // "Sell": `_.filter(this.trades, trade => trade.action == "sell").length`,
+      // "Market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
+      // "Profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
+      "model_name": "`${config.miscellaneous.modelName}`",
+      "model_type": "`${config.miscellaneous.modelType}`",
+      "rolling_step": "`${config.miscellaneous.rollingStep}`",
+      "lag": "`${config.miscellaneous.lag}`",
+      "take_profit": "`${this.backtest.strategyParameters.takeProfit}`",
+      "stop_loss": "`${this.backtest.strategyParameters.stopLoss}`",
+      "expiration_period": "`${this.backtest.strategyParameters.expirationPeriod}`",
+      "train_daterange": "`${config.dateRange.trainDaterange.from}_${config.dateRange.trainDaterange.to}`",
+      "test_daterange": "`${config.dateRange.backtestDaterange.from}_${config.dateRange.backtestDaterange.to}`",
+      "candle_size": "this.backtest.tradingAdvisor.candleSize",
+      "Start Price": "this.performanceReport.startPrice",
+      "End Price": "this.performanceReport.endPrice",
+      "Market": "`${this.performanceReport.market}%`",
+      "PnL": "`${(this.performanceReport.profit + this.performanceReport.trades*config.paperTrader.feeMaker).toFixed(4)} (${(this.performanceReport.relativeProfit + this.performanceReport.trades*config.paperTrader.feeMaker*100/this.performanceReport.startBalance).toFixed(4)}%)`",
+      "PnL_withFee": "`${this.performanceReport.profit.toFixed(4)} (${this.performanceReport.relativeProfit.toFixed(4)}%)`",
+      "Lowest Balance": "this.performanceReport.lowestBalance.toFixed(4)",
+      "Changes vs Market": "`${(this.performanceReport.relativeProfit - this.performanceReport.market).toFixed(4)}`"
     }
    }
   }

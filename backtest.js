@@ -21,27 +21,75 @@ const marketsAndPair = [{
 // const candleSizes = [15, 30, 60, 90] // Đơn vị phút
 // const candleSizes = [15, 30, 60, 90, 120, 240, 480, 1440] // Đơn vị phút
 const candleSizes = [60]
+// const candleSizes = [60]
 //NOTE: MUST INCLUDE TIMEZONE, gekko uses UTC inside
-const dateRanges = [{
+const dateRanges = [
+  //theo tác giả
+  {
     trainDaterange: {
       from: "2018-02-11T21:00:00.000Z",
-      to: "2018-03-10T08:00:00.000Z"
+      to: "2018-03-30T18:00:00.000Z"
     },
     backtestDaterange: {
       from: "2018-04-15T09:00:00.000Z",
-      to: "2018-05-01T01:00:00.000Z"
+      to: "2018-05-01T00:00:00.000Z"
     }
   },
-  // {
-  //   trainDaterange: {
-  //     from: "2018-02-11T21:00:00.000Z",
-  //     to: "2018-03-30T08:00:00.000Z"
-  //   },
-  //   backtestDaterange: {
-  //     from: "2018-04-15T09:00:00.000Z",
-  //     to: "2018-05-01T01:00:00.000Z"
-  //   }
-  // }
+  //tăng mạnh
+  {
+    trainDaterange: {
+      from: "2017-11-04T00:00:00.000Z",
+      to: "2018-02-04T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2018-02-05T00:00:00.000Z",
+      to: "2018-03-05T00:00:00.000Z"
+    }
+  },
+  //giảm mạnh
+  {
+    trainDaterange: {
+      from: "2017-12-04T00:00:00.000Z",
+      to: "2018-03-04T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2018-03-05T00:00:00.000Z",
+      to: "2018-04-05T00:00:00.000Z"
+    }
+  },
+  //tăng nhẹ
+  {
+    trainDaterange: {
+      from: "2018-10-24T00:00:00.000Z",
+      to: "2019-01-20T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2019-01-21T00:00:00.000Z",
+      to: "2019-02-21T00:00:00.000Z"
+    }
+  },
+  //giảm nhẹ
+  {
+    trainDaterange: {
+      from: "2018-05-30T00:00:00.000Z",
+      to: "2018-08-31T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2018-09-01T00:00:00.000Z",
+      to: "2018-10-01T00:00:00.000Z"
+    }
+  },
+  //gần đây
+  {
+    trainDaterange: {
+      from: "2018-11-28T00:00:00.000Z",
+      to: "2019-02-28T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2019-03-01T00:00:00.000Z",
+      to: "2019-04-15T00:00:00.000Z"
+    }
+  },
 ]
 
 const strategyForBacktest = [{
@@ -52,8 +100,8 @@ const strategyForBacktest = [{
     amountForOneTrade: 100,
     expirationPeriod: 24,
     backtest: true,
-    dataFile: "data-for-backtest/backtest-data.json",
-    stopTradeLimit: -500,
+    dataFile: "",
+    stopTradeLimit: -5000,
     // totalWatchCandles: 24,
     breakDuration: -1,
     features: ["start", "open", "high", "low", "close", "volume", "trades", {
@@ -102,46 +150,53 @@ const main = async () => {
           let config = _.cloneDeep(sampleConfig);
 
           console.log("Generate config...");
-          generateConfig(config, marketsAndPair[k], candleSizes[i], strategyGetData);
+          generateConfig(config, marketsAndPair[k], candleSizes[i], strategyGetData, dateRanges[j]);
 
-          console.log("Generate config for prepare train data...");
-          let trainDataName = generateConfigTrain(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].trainDaterange);
-          // Ghi file config train
-          console.log("Write config for prepare train data...");
-          fs.writeFileSync(nameConfig, await generateConfigString(config));
+          // console.log("Generate config for prepare train data...");
+          // let trainDataName = generateConfigTrain(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].trainDaterange);
+          // // Ghi file config train
+          // console.log("Write config for prepare train data...");
+          // fs.writeFileSync(nameConfig, await generateConfigString(config));
 
           // // Chạy backtest để chuẩn bị train data
           // console.log("Run gekko for prepare train data...");
           // await runGekkoProcess(nameConfig);
 
-          console.log("Generate config for prepare test data...");
-          let testDataName = generateConfigTest(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].backtestDaterange);
+          // console.log("Generate config for prepare test data...");
+          // let testDataName = generateConfigTest(config, marketsAndPair[k], strategyForBacktest[l], candleSizes[i], dateRanges[j].backtestDaterange);
           // Ghi file config backtest
-          console.log("Write config for prepare test data...");
-          fs.writeFileSync(nameConfig, await generateConfigString(config));
+          // console.log("Write config for prepare test data...");
+          // fs.writeFileSync(nameConfig, await generateConfigString(config));
 
           // // Chạy backtest để chuẩn bị backtest data
           // console.log("Run gekko for prepare test data...");
           // await runGekkoProcess(nameConfig);
 
-          // Gửi train data và test data cho python, tạm thời bỏ
+          // Gửi train data và test data cho python -> bỏ
           let trainData = {}
           let testData = {}
-          console.log("Connect python ...");
+          console.log("Connect to python ...");
           let result = await sendTrainAndTestDataToPythonServer(marketsAndPair[k], trainData, testData, dateRanges[j].trainDaterange, dateRanges[j].backtestDaterange, candleSizes[i], modelName, modelType, rollingStep, modelLag, strategyForBacktest[l]);
-          console.log('Connect python done ...')
+          console.log('Connect to python done ...')
           if (result) {
-            let backtestData = result;
+            //Create an unique ID for predicted data file and config file
+            randomNumber = Math.floor((Math.random() * 10000000) + 1)
+            id = `${moment().valueOf()}_${randomNumber}`
+            strategyForBacktest[l].settings.dataFile = `data-for-backtest/${id}.json`
+
             // Write backtest data
-            console.log("Write backtest data for backtest ...");
-            fs.writeFileSync(strategyForBacktest[l].settings.dataFile, JSON.stringify(backtestData));
+            console.log("Write predicted data file for backtest ...");
+            fs.writeFileSync(strategyForBacktest[l].settings.dataFile, JSON.stringify(result));
+
             console.log("Generate config for backtest ...");
             generateConfigBacktest(config, dateRanges[j].backtestDaterange, strategyForBacktest[l]);
+
             // Ghi file config để backtest
-            console.log("Write config for backtest ...");
-            fs.writeFileSync(nameConfig, await generateConfigString(config));
+            console.log("Write config file for backtest ...");
+            backtestFileName = `backtestConfigs/${id}.js`
+            fs.writeFileSync(backtestFileName, await generateConfigString(config));
             console.log("Run gekko for backtest test data...");
-            await runGekkoProcess(nameConfig)
+            await runGekkoProcess(backtestFileName)
           }
         }
         //
@@ -213,18 +268,18 @@ const generateNameFile = (train = true, marketsAndPair, strategyForBacktest, can
   return `data-for-backtest/${train ? "train" : "test"}_${fileName}.json`
 }
 
-const generateConfig = (config, marketsAndPair, candleSizes, strategyGetData) => {
+const generateConfig = (config, marketsAndPair, candleSizes, strategyGetData, dateRange) => {
   // Chuẩn bị data train để gửi cho model
   // Tắt hết pluggin
   for (let m in config) {
     if (_.isObject(config[m]))
-      config[m].enable = false;
+      config[m].enabled = false;
   }
   // Bật lại những pluggin cần thiết
   let plugginEnable = ["tradingAdvisor", "paperTrader", "performanceAnalyzer"];
   for (let m = 0; m < plugginEnable.length; m++) {
     if (_.isObject(config[plugginEnable[m]]))
-      config[plugginEnable[m]].enable = true;
+      config[plugginEnable[m]].enabled = true;
   }
   // Chỉnh sàn + cặp tiền
   config["watch"] = marketsAndPair;
@@ -233,6 +288,14 @@ const generateConfig = (config, marketsAndPair, candleSizes, strategyGetData) =>
   // Chỉnh lại thuật toán để ghi candle ra file
   config["tradingAdvisor"].method = strategyGetData.name;
   config[strategyGetData.name] = strategyGetData.settings;
+
+  config["dateRange"] = dateRange;
+  config['miscellaneous'] = {
+    modelName: modelName,
+    modelType: modelType,
+    rollingStep: rollingStep,
+    lag: modelLag,
+  }
 }
 
 const generateConfigTrain = (config, marketsAndPair, strategyForBacktest, candleSizes, trainDaterange) => {
