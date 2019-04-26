@@ -27,7 +27,7 @@ const PerformanceAnalyzer = function() {
   this.currency = watchConfig.currency;
   this.asset = watchConfig.asset;
 
-  this.roundTripReportMode = perfConfig.roundTripReportMode; // DEFAULT || BY_DOUBLESTOP_TRIGGER
+  this.roundTripReportMode = perfConfig.roundTripReportMode || "DEFAULT"; // DEFAULT || BY_DOUBLESTOP_TRIGGER
 
   this.logger = new Logger(watchConfig, this.roundTripReportMode);
 

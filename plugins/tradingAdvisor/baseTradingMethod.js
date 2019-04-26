@@ -248,11 +248,13 @@ Base.prototype.addIndicator = function(name, type, parameters) {
 }
 
 Base.prototype.advice = function(newDirection) {
-  let amount = newDirection.amount;
   // ignore legacy soft advice
   if(!newDirection) {
     return;
   }
+
+  // Chơi all in nếu amount === undefined
+  let amount = newDirection.amount ;
 
   let trigger;
   if(_.isObject(newDirection)) {
