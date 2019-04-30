@@ -80,7 +80,7 @@ PaperTrader.prototype.loadTriggers = function () {
     })
 
     // Trường hợp k đủ asset thì cancel toàn bộ trigger vừa load lên
-    if(totalAssetFromTriggers > this.portfolio.asset) {
+    if (totalAssetFromTriggers > this.portfolio.asset) {
       this.activeDoubleStopTriggers = [];
     }
   } catch (error) {
@@ -358,8 +358,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
           onTrigger: this.onDoubleStopTrigger
         })
       )
-      util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
-      util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
+      this.saveCurrentState();
     } else if (trigger.id) {
       // update trigger
       for (let i = 0; i < this.activeDoubleStopTriggers.length; i++) {
@@ -381,8 +380,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
               assetAmount: curTrigger.assetAmount
             }
           });
-          util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
-          util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
+          this.saveCurrentState();
           break;
         }
       }
@@ -432,9 +430,14 @@ PaperTrader.prototype.onDoubleStopTrigger = async function ({ id, assetAmount, r
   this.activeDoubleStopTriggers = this.activeDoubleStopTriggers.filter(function (item) {
     return item.id !== id
   })
-  util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
-  util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
+  this.saveCurrentState();
+}
 
+PaperTrader.prototype.saveCurrentState = function () {
+  if (util.gekkoMode() === 'realtime') {
+    util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
+    util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
+  }
 }
 
 PaperTrader.prototype.onStopTrigger = async function () {
@@ -475,7 +478,9 @@ PaperTrader.prototype.onStopTrigger = async function () {
 }
 
 PaperTrader.prototype.processCandle = function (candle, done) {
-  log.info('Number of triggers: ', this.activeDoubleStopTriggers.length);
+  if (util.gekkoMode() === 'realtime') {
+    log.info('Number of triggers: ', this.activeDoubleStopTriggers.length);
+  }
   this.price = candle.close;
   this.candle = candle;
 
