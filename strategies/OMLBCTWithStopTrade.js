@@ -12,7 +12,9 @@ var method = {};
 method.buy = function (amountDollar, candle) {
   // Tìm xem có trigger nào sắp hết hạn không
   let triggerExpireSoons = _.filter(this.triggerManagers, trigger => {
-    if(candle.start.clone().add(1.5 * candleSize, 'm').isAfter(trigger.properties.expires)) {
+    // 2 lần candle size + 1m vì 1 lần candle size để dịch tới hiện tại từ candle.start
+    // 1 lần còn lại để phát hiện những candle đã chờ 23h
+    if(candle.start.clone().add(2 * candleSize + 1, 'm').isSameOrAfter(trigger.properties.expires)) {
       return true;
     }
     return false;

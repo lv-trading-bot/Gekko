@@ -57,7 +57,7 @@ Logger.prototype.logRoundtrip = function (rt) {
     // '(ROUNDTRIP)', 'entry date \thold \tbuy \tsell \tprofit'
     display = [
       meta.initialStart.utc().format('YYYY-MM-DD HH:mm'),
-      moment.duration(meta.exitCandle.start.diff(meta.initialStart)).asHours().toFixed(2),
+      moment.duration(meta.exitCandle.start.add(1, 'm').diff(meta.initialStart)).asHours().toFixed(2),
       meta.initialPrice,
       meta.exitPrice,
       ((meta.exitPrice - meta.initialPrice) * 100 / meta.initialPrice).toFixed(2)

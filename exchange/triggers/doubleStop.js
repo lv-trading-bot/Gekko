@@ -43,6 +43,7 @@ class DoubleStop extends EventEmitter {
       return;
     }
     if(typeof candle === 'object') {
+      // Backtest mode only
       const upTrend = (candle.high - this.currentInitialPrice) * 100 / Math.abs(this.currentInitialPrice);
       const downTrend = (candle.low - this.currentInitialPrice) * 100 / Math.abs(this.currentInitialPrice);
       //trend at close
@@ -79,6 +80,7 @@ class DoubleStop extends EventEmitter {
         });
       }
     } else {
+      // Realtime mode only
       let price = candle;
       const upTrend = (price - this.currentInitialPrice) * 100 / Math.abs(this.currentInitialPrice);
       const downTrend = (price - this.currentInitialPrice) * 100 / Math.abs(this.currentInitialPrice);
@@ -94,7 +96,10 @@ class DoubleStop extends EventEmitter {
             trend,
             expires: this.expires,
             exitPrice: candle.close,
-            exitCandle: candle
+            exitCandle: {
+              start: moment().utc(),
+              close: price,
+            }
           },
           id: this.id
         });
@@ -109,7 +114,10 @@ class DoubleStop extends EventEmitter {
             trend,
             expires: this.expires,
             exitPrice: candle.close,
-            exitCandle: candle
+            exitCandle: {
+              start: moment().utc(),
+              close: price,
+            }
           },
           id: this.id
         });
