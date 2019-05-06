@@ -35,6 +35,8 @@ const PaperTrader = function () {
   this.asset = watchConfig.asset;
 
   try {
+    if (util.gekkoMode() !== 'realtime') throw new Error("");
+
     this.portfolio = util.getCurrenPortfolio(nameFileSavePortfolio);
   } catch (err) {
     this.portfolio = {
@@ -60,6 +62,8 @@ const PaperTrader = function () {
 PaperTrader.prototype.loadTriggers = function () {
   let triggers = [];
   try {
+    if (util.gekkoMode() !== 'realtime') throw new Error("");
+
     triggers = util.getTriggersStateFromFile(nameFileSaveStateTrigger);
 
     let totalAssetFromTriggers = 0;
@@ -80,7 +84,7 @@ PaperTrader.prototype.loadTriggers = function () {
     })
 
     // Trường hợp k đủ asset thì cancel toàn bộ trigger vừa load lên
-    if(totalAssetFromTriggers > this.portfolio.asset) {
+    if (totalAssetFromTriggers > this.portfolio.asset) {
       this.activeDoubleStopTriggers = [];
     }
   } catch (error) {
@@ -140,21 +144,234 @@ PaperTrader.prototype.setStartBalance = function () {
   this.balance = this.getBalance();
 }
 
-// after every succesfull trend ride we hopefully end up
-// with more BTC than we started with, this function
-// calculates Gekko's profit in %.
-PaperTrader.prototype.updatePosition = function (what, amount) {
-  return new Promise(async (resolve, reject) => {
-    let price = this.price;
-    if (mode === 'realtime') {
-      try {
-        let tempPrice = await this.exchange.getPrice(what, amount);
-        price = tempPrice ? tempPrice : this.price;
-      } catch (error) {
-        log.info("" + error);
-        price = this.price;
+if (util.gekkoMode() === 'realtime') {
+  // after every succesfull trend ride we hopefully end up
+  // with more BTC than we started with, this function
+  // calculates Gekko's profit in %.
+  PaperTrader.prototype.updatePosition = function (what, amount) {
+    return new Promise(async (resolve, reject) => {
+      let price = this.price;
+      if (mode === 'realtime') {
+        try {
+          let tempPrice = await this.exchange.getPrice(what, amount);
+          price = tempPrice ? tempPrice : this.price;
+        } catch (error) {
+          log.info("" + error);
+          price = this.price;
+        }
       }
+
+      let cost;
+      // let amount;
+      let amountWithFee = 0;
+
+      // virtually trade all {currency} to {asset}
+      // at the current price (minus fees)
+      if (what === 'long') {
+        // amount: currency
+        // amountWithFee: asset
+        // Nếu không có amount thì chuyển về all-in
+        amount = amount !== undefined ? amount : this.portfolio.currency;
+        amountWithFee = this.extractFee(amount / price);
+        cost = (1 - this.fee) * amount;
+        this.portfolio.asset += amountWithFee;
+        this.portfolio.currency -= amount;
+
+        // this.exposed = true;
+        // this.trades++;
+      }
+
+      // virtually trade all {currency} to {asset}
+      // at the current price (minus fees)
+      else if (what === 'short') {
+        // amount: asset
+        // amountWithFee: currency
+        // Nếu không có amount thì chuyển về all-in
+        amount = amount !== undefined ? amount : (this.portfolio.asset);
+        amountWithFee = this.extractFee(amount * price);
+        cost = (1 - this.fee) * (amount * price);
+        this.portfolio.currency += amountWithFee;
+        this.portfolio.asset -= amount;
+
+        // this.exposed = false;
+        // this.trades++;
+      }
+
+      const effectivePrice = price * this.fee;
+
+      resolve({
+        cost,
+        amount,
+        effectivePrice,
+        amountWithFee
+      });
+    })
+  }
+
+  PaperTrader.prototype.processAdvice = async function (advice) {
+    if (!this.isValidAdvice(advice) && advice.amount !== undefined) return;
+    let action;
+    if (advice.recommendation === 'short') {
+      action = 'sell';
+
+      // clean up potential old stop trigger
+      if (this.activeStopTrigger) {
+        this.deferredEmit('triggerAborted', {
+          id: this.activeStopTrigger.id,
+          date: advice.date
+        });
+
+        delete this.activeStopTrigger;
+      }
+
+    } else if (advice.recommendation === 'long') {
+      action = 'buy';
+
+      if (advice.trigger) {
+
+        // clean up potential old stop trigger
+        if (this.activeStopTrigger) {
+          this.deferredEmit('triggerAborted', {
+            id: this.activeStopTrigger.id,
+            date: advice.date
+          });
+
+          delete this.activeStopTrigger;
+        }
+
+        this.createTrigger(advice);
+      }
+    } else {
+      return log.warn(
+        `[Papertrader] ignoring unknown advice recommendation: ${advice.recommendation}`
+      );
     }
+
+    //ignore 'ghost' advice (only used for creating triggers)
+    if (advice.amount === 0) {
+      return;
+    }
+    this.tradeId = 'trade-' + (++this.propogatedTrades);
+
+    this.deferredEmit('tradeInitiated', {
+      id: this.tradeId,
+      adviceId: advice.id,
+      action,
+      portfolio: _.clone(this.portfolio),
+      balance: this.getBalance(),
+      date: advice.date,
+    });
+
+    const {
+      cost,
+      amount,
+      effectivePrice,
+      amountWithFee
+    } = await this.updatePosition(advice.recommendation, advice.amount);
+
+    this.relayPortfolioChange();
+    this.relayPortfolioValueChange();
+
+    this.deferredEmit('tradeCompleted', {
+      id: _.cloneDeep(this.tradeId),
+      adviceId: advice.id,
+      action,
+      cost,
+      amount,
+      price: _.cloneDeep(this.price),
+      portfolio: _.cloneDeep(this.portfolio),
+      balance: this.getBalance(),
+      date: advice.date,
+      effectivePrice,
+      feePercent: this.rawFee,
+      amountWithFee: amountWithFee
+    });
+  }
+
+  PaperTrader.prototype.onStopTrigger = async function () {
+
+    const date = this.now();
+
+    this.deferredEmit('triggerFired', {
+      id: this.activeStopTrigger.id,
+      date
+    });
+
+    const {
+      cost,
+      amount,
+      effectivePrice,
+      amountWithFee
+    } = await this.updatePosition('short');
+
+    this.relayPortfolioChange();
+    this.relayPortfolioValueChange();
+
+    this.deferredEmit('tradeCompleted', {
+      id: this.tradeId,
+      adviceId: this.activeStopTrigger.adviceId,
+      action: 'sell',
+      cost,
+      amount,
+      price: this.price,
+      portfolio: this.portfolio,
+      balance: this.getBalance(),
+      date,
+      effectivePrice,
+      feePercent: this.rawFee,
+      amountWithFee
+    });
+
+    delete this.activeStopTrigger;
+  }
+  PaperTrader.prototype.onDoubleStopTrigger = async function ({ id, assetAmount, roundTrip }) {
+
+    const date = this.now();
+
+    this.deferredEmit('triggerFired', roundTrip);
+
+    const {
+      cost,
+      amount,
+      effectivePrice,
+      amountWithFee
+    } = await this.updatePosition('short', assetAmount);
+
+    this.relayPortfolioChange();
+    this.relayPortfolioValueChange();
+
+    this.tradeId = 'trade-' + (++this.propogatedTrades);
+
+    let trigger = _.find(this.activeDoubleStopTriggers, function (item) {
+      return item.id === id;
+    })
+
+    this.deferredEmit('tradeCompleted', {
+      id: _.cloneDeep(this.tradeId),
+      adviceId: _.cloneDeep(trigger.adviceId),
+      action: 'sell',
+      cost,
+      amount,
+      price: _.cloneDeep(this.price),
+      portfolio: _.cloneDeep(this.portfolio),
+      balance: this.getBalance(),
+      date,
+      effectivePrice,
+      feePercent: _.cloneDeep(this.rawFee),
+      amountWithFee
+    });
+
+    this.activeDoubleStopTriggers = this.activeDoubleStopTriggers.filter(function (item) {
+      return item.id !== id
+    })
+    this.saveCurrentState();
+  }
+} else {
+  // after every succesfull trend ride we hopefully end up
+  // with more BTC than we started with, this function
+  // calculates Gekko's profit in %.
+  PaperTrader.prototype.updatePosition = function (what, amount) {
+    let price = this.price;
 
     let cost;
     // let amount;
@@ -194,43 +411,19 @@ PaperTrader.prototype.updatePosition = function (what, amount) {
 
     const effectivePrice = price * this.fee;
 
-    resolve({
+    return {
       cost,
       amount,
       effectivePrice,
       amountWithFee
-    });
-  })
-}
+    };
+  }
 
-PaperTrader.prototype.getBalance = function () {
-  return this.portfolio.currency + this.price * this.portfolio.asset;
-}
-
-PaperTrader.prototype.now = function () {
-  return this.candle.start.clone().add(1, 'minute');
-}
-
-PaperTrader.prototype.processAdvice = async function (advice) {
-  if (!this.isValidAdvice(advice) && advice.amount !== undefined) return;
-  let action;
-  if (advice.recommendation === 'short') {
-    action = 'sell';
-
-    // clean up potential old stop trigger
-    if (this.activeStopTrigger) {
-      this.deferredEmit('triggerAborted', {
-        id: this.activeStopTrigger.id,
-        date: advice.date
-      });
-
-      delete this.activeStopTrigger;
-    }
-
-  } else if (advice.recommendation === 'long') {
-    action = 'buy';
-
-    if (advice.trigger) {
+  PaperTrader.prototype.processAdvice = function (advice) {
+    if (!this.isValidAdvice(advice) && advice.amount !== undefined) return;
+    let action;
+    if (advice.recommendation === 'short') {
+      action = 'sell';
 
       // clean up potential old stop trigger
       if (this.activeStopTrigger) {
@@ -242,53 +435,156 @@ PaperTrader.prototype.processAdvice = async function (advice) {
         delete this.activeStopTrigger;
       }
 
-      this.createTrigger(advice);
+    } else if (advice.recommendation === 'long') {
+      action = 'buy';
+
+      if (advice.trigger) {
+
+        // clean up potential old stop trigger
+        if (this.activeStopTrigger) {
+          this.deferredEmit('triggerAborted', {
+            id: this.activeStopTrigger.id,
+            date: advice.date
+          });
+
+          delete this.activeStopTrigger;
+        }
+
+        this.createTrigger(advice);
+      }
+    } else {
+      return log.warn(
+        `[Papertrader] ignoring unknown advice recommendation: ${advice.recommendation}`
+      );
     }
-  } else {
-    return log.warn(
-      `[Papertrader] ignoring unknown advice recommendation: ${advice.recommendation}`
-    );
+
+    //ignore 'ghost' advice (only used for creating triggers)
+    if (advice.amount === 0) {
+      return;
+    }
+    this.tradeId = 'trade-' + (++this.propogatedTrades);
+
+    this.deferredEmit('tradeInitiated', {
+      id: this.tradeId,
+      adviceId: advice.id,
+      action,
+      portfolio: _.clone(this.portfolio),
+      balance: this.getBalance(),
+      date: advice.date,
+    });
+
+    const {
+      cost,
+      amount,
+      effectivePrice,
+      amountWithFee
+    } = this.updatePosition(advice.recommendation, advice.amount);
+
+    this.relayPortfolioChange();
+    this.relayPortfolioValueChange();
+
+    this.deferredEmit('tradeCompleted', {
+      id: _.cloneDeep(this.tradeId),
+      adviceId: advice.id,
+      action,
+      cost,
+      amount,
+      price: _.cloneDeep(this.price),
+      portfolio: _.cloneDeep(this.portfolio),
+      balance: this.getBalance(),
+      date: advice.date,
+      effectivePrice,
+      feePercent: this.rawFee,
+      amountWithFee: amountWithFee
+    });
   }
 
-  //ignore 'ghost' advice (only used for creating triggers)
-  if (advice.amount === 0) {
-    return;
+  PaperTrader.prototype.onStopTrigger = async function () {
+
+    const date = this.now();
+
+    this.deferredEmit('triggerFired', {
+      id: this.activeStopTrigger.id,
+      date
+    });
+
+    const {
+      cost,
+      amount,
+      effectivePrice,
+      amountWithFee
+    } = this.updatePosition('short');
+
+    this.relayPortfolioChange();
+    this.relayPortfolioValueChange();
+
+    this.deferredEmit('tradeCompleted', {
+      id: this.tradeId,
+      adviceId: this.activeStopTrigger.adviceId,
+      action: 'sell',
+      cost,
+      amount,
+      price: this.price,
+      portfolio: this.portfolio,
+      balance: this.getBalance(),
+      date,
+      effectivePrice,
+      feePercent: this.rawFee,
+      amountWithFee
+    });
+
+    delete this.activeStopTrigger;
   }
-  this.tradeId = 'trade-' + (++this.propogatedTrades);
+  PaperTrader.prototype.onDoubleStopTrigger = async function ({ id, assetAmount, roundTrip }) {
 
-  this.deferredEmit('tradeInitiated', {
-    id: this.tradeId,
-    adviceId: advice.id,
-    action,
-    portfolio: _.clone(this.portfolio),
-    balance: this.getBalance(),
-    date: advice.date,
-  });
+    const date = this.now();
 
-  const {
-    cost,
-    amount,
-    effectivePrice,
-    amountWithFee
-  } = await this.updatePosition(advice.recommendation, advice.amount);
+    this.deferredEmit('triggerFired', roundTrip);
 
-  this.relayPortfolioChange();
-  this.relayPortfolioValueChange();
+    const {
+      cost,
+      amount,
+      effectivePrice,
+      amountWithFee
+    } = this.updatePosition('short', assetAmount);
 
-  this.deferredEmit('tradeCompleted', {
-    id: _.cloneDeep(this.tradeId),
-    adviceId: advice.id,
-    action,
-    cost,
-    amount,
-    price: _.cloneDeep(this.price),
-    portfolio: _.cloneDeep(this.portfolio),
-    balance: this.getBalance(),
-    date: advice.date,
-    effectivePrice,
-    feePercent: this.rawFee,
-    amountWithFee: amountWithFee
-  });
+    this.relayPortfolioChange();
+    this.relayPortfolioValueChange();
+
+    this.tradeId = 'trade-' + (++this.propogatedTrades);
+
+    let trigger = _.find(this.activeDoubleStopTriggers, function (item) {
+      return item.id === id;
+    })
+
+    this.deferredEmit('tradeCompleted', {
+      id: _.cloneDeep(this.tradeId),
+      adviceId: _.cloneDeep(trigger.adviceId),
+      action: 'sell',
+      cost,
+      amount,
+      price: _.cloneDeep(this.price),
+      portfolio: _.cloneDeep(this.portfolio),
+      balance: this.getBalance(),
+      date,
+      effectivePrice,
+      feePercent: _.cloneDeep(this.rawFee),
+      amountWithFee
+    });
+
+    this.activeDoubleStopTriggers = this.activeDoubleStopTriggers.filter(function (item) {
+      return item.id !== id
+    })
+    this.saveCurrentState();
+  }
+}
+
+PaperTrader.prototype.getBalance = function () {
+  return this.portfolio.currency + this.price * this.portfolio.asset;
+}
+
+PaperTrader.prototype.now = function () {
+  return this.candle.start.clone().add(1, 'minute');
 }
 
 PaperTrader.prototype.createTrigger = function (advice) {
@@ -358,8 +654,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
           onTrigger: this.onDoubleStopTrigger
         })
       )
-      util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
-      util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
+      this.saveCurrentState();
     } else if (trigger.id) {
       // update trigger
       for (let i = 0; i < this.activeDoubleStopTriggers.length; i++) {
@@ -381,8 +676,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
               assetAmount: curTrigger.assetAmount
             }
           });
-          util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
-          util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
+          this.saveCurrentState();
           break;
         }
       }
@@ -392,90 +686,17 @@ PaperTrader.prototype.createTrigger = function (advice) {
   }
 }
 
-PaperTrader.prototype.onDoubleStopTrigger = async function ({ id, assetAmount, roundTrip }) {
-
-  const date = this.now();
-
-  this.deferredEmit('triggerFired', roundTrip);
-
-  const {
-    cost,
-    amount,
-    effectivePrice,
-    amountWithFee
-  } = await this.updatePosition('short', assetAmount);
-
-  this.relayPortfolioChange();
-  this.relayPortfolioValueChange();
-
-  this.tradeId = 'trade-' + (++this.propogatedTrades);
-
-  let trigger = _.find(this.activeDoubleStopTriggers, function (item) {
-    return item.id === id;
-  })
-
-  this.deferredEmit('tradeCompleted', {
-    id: _.cloneDeep(this.tradeId),
-    adviceId: _.cloneDeep(trigger.adviceId),
-    action: 'sell',
-    cost,
-    amount,
-    price: _.cloneDeep(this.price),
-    portfolio: _.cloneDeep(this.portfolio),
-    balance: this.getBalance(),
-    date,
-    effectivePrice,
-    feePercent: _.cloneDeep(this.rawFee),
-    amountWithFee
-  });
-
-  this.activeDoubleStopTriggers = this.activeDoubleStopTriggers.filter(function (item) {
-    return item.id !== id
-  })
-  util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
-  util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
-
-}
-
-PaperTrader.prototype.onStopTrigger = async function () {
-
-  const date = this.now();
-
-  this.deferredEmit('triggerFired', {
-    id: this.activeStopTrigger.id,
-    date
-  });
-
-  const {
-    cost,
-    amount,
-    effectivePrice,
-    amountWithFee
-  } = await this.updatePosition('short');
-
-  this.relayPortfolioChange();
-  this.relayPortfolioValueChange();
-
-  this.deferredEmit('tradeCompleted', {
-    id: this.tradeId,
-    adviceId: this.activeStopTrigger.adviceId,
-    action: 'sell',
-    cost,
-    amount,
-    price: this.price,
-    portfolio: this.portfolio,
-    balance: this.getBalance(),
-    date,
-    effectivePrice,
-    feePercent: this.rawFee,
-    amountWithFee
-  });
-
-  delete this.activeStopTrigger;
+PaperTrader.prototype.saveCurrentState = function () {
+  if (util.gekkoMode() === 'realtime') {
+    util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
+    util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
+  }
 }
 
 PaperTrader.prototype.processCandle = function (candle, done) {
-  log.info('Number of triggers: ', this.activeDoubleStopTriggers.length);
+  if (util.gekkoMode() === 'realtime') {
+    log.info('Number of triggers: ', this.activeDoubleStopTriggers.length);
+  }
   this.price = candle.close;
   this.candle = candle;
 
