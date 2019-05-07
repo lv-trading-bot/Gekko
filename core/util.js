@@ -164,19 +164,22 @@ var util = {
   getStartTime: function () {
     return startTime;
   },
-  updateTriggersStateToFile: function (fileName, triggers, isLive = false) {
+  updateTriggersStateToFile: function (fileName, triggers, propogatedTriggers, isLive = false) {
     if(isLive) {
       let triggersSave = [];
       for (let i = 0; i < triggers.length; i++) {
         triggersSave.push(triggers[i].trigger);
       }
-      fs.writeFileSync(__dirname + fileName + ".json", JSON.stringify(triggersSave));
+      fs.writeFileSync(__dirname + fileName + ".json", JSON.stringify({triggersSave, propogatedTriggers}));
     } else {
-      fs.writeFileSync(__dirname + fileName + ".json", JSON.stringify(triggers));
+      fs.writeFileSync(__dirname + fileName + ".json", JSON.stringify({triggersSave: triggers, propogatedTriggers}));
     }
   },
   getTriggersStateFromFile: function (fileName) {
-    return (require(__dirname + fileName + ".json"));
+    return (require(__dirname + fileName + ".json")).triggersSave;
+  },
+  getPropogatedTriggersFromFile: function (fileName) {
+    return (require(__dirname + fileName + ".json")).propogatedTriggers;
   },
   saveCurrentPortfolio: function (fileName, portfolio) {
     fs.writeFileSync(__dirname + fileName + ".json", JSON.stringify(portfolio));

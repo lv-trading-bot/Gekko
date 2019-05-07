@@ -96,6 +96,11 @@ var subscriptions = [
   },
   {
     emitter: ['trader', 'paperTrader'],
+    event: 'triggerWasRestore',
+    handler: 'processTriggerWasRestore'
+  },
+  {
+    emitter: ['trader', 'paperTrader'],
     event: 'portfolioValueChange',
     handler: 'processPortfolioValueChange'
   },

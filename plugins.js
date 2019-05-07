@@ -236,6 +236,14 @@ var plugins = [
     async: false,
     modes: ['realtime'],
     greedy: true
+  },
+  {
+    name: 'Connect to Manager',
+    description: 'Connect all Trigger, Trade, Portfolio to Manager',
+    slug: 'connectManager',
+    async: false,
+    modes: ['realtime'],
+    greedy: true
   }
 ];
 
