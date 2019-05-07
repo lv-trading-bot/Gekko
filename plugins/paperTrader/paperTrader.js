@@ -65,17 +65,15 @@ PaperTrader.prototype.loadTriggers = function () {
     if (util.gekkoMode() !== 'realtime') throw new Error("");
 
     triggers = util.getTriggersStateFromFile(nameFileSaveStateTrigger);
+    this.propogatedTriggers = util.getPropogatedTriggersFromFile(nameFileSaveStateTrigger);
 
     let totalAssetFromTriggers = 0;
-    let triggerId = "";
 
     _.forEach(triggers, trigger => {
       totalAssetFromTriggers += parseFloat(trigger.assetAmount);
-      triggerId = 'trigger-' + (++this.propogatedTriggers);
       this.activeDoubleStopTriggers.push(
         new DoubleStop({
           ...trigger,
-          id: triggerId,
           initialStart: moment(trigger.initialStart),
           expires: moment(trigger.expires),
           onTrigger: this.onDoubleStopTrigger
@@ -86,6 +84,12 @@ PaperTrader.prototype.loadTriggers = function () {
     // Trường hợp k đủ asset thì cancel toàn bộ trigger vừa load lên
     if (totalAssetFromTriggers > this.portfolio.asset) {
       this.activeDoubleStopTriggers = [];
+    }
+    if (this.activeDoubleStopTriggers.length > 0) {
+      // Chờ 1 xíu để mọi thứ sẵn sàng mới đẩy event
+      setTimeout(() => {
+        this.deferredEmit('triggerWasRestore', this.activeDoubleStopTriggers);
+      }, 1000)
     }
   } catch (error) {
 
@@ -688,7 +692,7 @@ PaperTrader.prototype.createTrigger = function (advice) {
 
 PaperTrader.prototype.saveCurrentState = function () {
   if (util.gekkoMode() === 'realtime') {
-    util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers);
+    util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, this.propogatedTriggers);
     util.saveCurrentPortfolio(nameFileSavePortfolio, this.portfolio);
   }
 }

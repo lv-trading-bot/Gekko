@@ -65,8 +65,8 @@ Trader.prototype.loadTriggers = function () {
   let triggers = [];
   try {
     triggers = util.getTriggersStateFromFile(nameFileSaveStateTrigger);
+    this.propogatedTriggers = util.getPropogatedTriggersFromFile(nameFileSaveStateTrigger);
     let totalAssetFromTriggers = 0;
-    let triggerId = "";
 
     for (let i = 0; i < triggers.length; i++) {
       totalAssetFromTriggers += parseFloat(triggers[i].assetAmount);
@@ -75,20 +75,23 @@ Trader.prototype.loadTriggers = function () {
     // Trường hợp đủ asset thì load toàn bộ trigger lên
     if (totalAssetFromTriggers - (0,001 * totalAssetFromTriggers) <= this.portfolio.asset) {
       _.forEach(triggers, trigger => {
-        triggerId = 'trigger-' + (++this.propogatedTriggers);
         this.activeDoubleStopTriggers.push(
           this.broker.createTrigger({
             type: 'doubleStop',
             onTrigger: this.onDoubleStopTrigger,
             props: {
               ...trigger,
-              id: triggerId,
               initialStart: moment(trigger.initialStart),
               expires: moment(trigger.expires),
             }
           })
         )
       })
+      if(this.activeDoubleStopTriggers.length > 0) {
+        setTimeout(() => {
+          this.deferredEmit('triggerWasRestore', this.activeDoubleStopTriggers);
+        }, 1000)
+      }
     }
   } catch (error) {
 
@@ -351,7 +354,7 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
           }
         })
       )
-      util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, true);
+      util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, this.propogatedTriggers, true);
     } else if (trigger.id) {
       // update trigger
       for (let i = 0; i < this.activeDoubleStopTriggers.length; i++) {
@@ -373,7 +376,7 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
               assetAmount: curTrigger.assetAmount
             }
           });
-          util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, true);
+          util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, this.propogatedTriggers, true);
           break;
         }
       }
@@ -587,7 +590,7 @@ Trader.prototype.onDoubleStopTrigger = function ({ id, assetAmount, roundTrip })
     return item.trigger.id !== id
   })
 
-  util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, true);
+  util.updateTriggersStateToFile(nameFileSaveStateTrigger, this.activeDoubleStopTriggers, this.propogatedTriggers, true);
 
 }
 

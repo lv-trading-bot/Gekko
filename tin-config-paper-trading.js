@@ -37,6 +37,16 @@ config.tradingAdvisor = {
   historySize: 0,
 }
 
+config.connectManager = {
+  enabled: true,
+  baseApi: "http://localhost:3005",
+  init: "/init",
+  reconnect: "/reconnect",
+  trigger: "/trigger",
+  trade: "/trade",
+  portfolio: "/portfolio"
+}
+
 config['OMLBCTWithStopTradePaperTrade'] = {
   stopLoss: -0.005,
   takeProfit: 0.01,
