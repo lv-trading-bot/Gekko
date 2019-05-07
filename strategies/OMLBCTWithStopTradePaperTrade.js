@@ -7,27 +7,29 @@ const axios = require('axios');
 var utils = require('../core/util');
 let candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
 let marketInfo = utils.getConfig().watch;
-let modelName = "random_forest";
-const api = "http://localhost:5000/backtest";
+
+const api = "http://localhost:5000/live";
 // let's create our own method
 var method = {};
 
 method.buy = function (amountDollar, candle) {
   // Tìm xem có trigger nào sắp hết hạn không
   let triggerExpireSoons = _.filter(this.triggerManagers, trigger => {
-    if(candle.start.clone().add(1.5*candleSize, 'm').isAfter(trigger.properties.expires)) {
+    // 2 lần candle size + 1m vì 1 lần candle size để dịch tới hiện tại từ candle.start
+    // 1 lần còn lại để phát hiện những candle đã chờ 23h
+    if (candle.start.clone().add(2 * candleSize + 1, 'm').isSameOrAfter(trigger.properties.expires)) {
       return true;
     }
     return false;
   })
-  if(triggerExpireSoons.length > 0) {
+  if (triggerExpireSoons.length > 0) {
     //Tìm ra trigger có giá mua thấp nhất
     let theBestTrigger = null;
-    for(let i = 0; i < triggerExpireSoons.length; i++) {
+    for (let i = 0; i < triggerExpireSoons.length; i++) {
       let curTrigger = triggerExpireSoons[i];
-      if(!theBestTrigger) {
+      if (!theBestTrigger) {
         theBestTrigger = curTrigger;
-      } else if(theBestTrigger.properties.initialPrice > curTrigger.properties.initialPrice){
+      } else if (theBestTrigger.properties.initialPrice > curTrigger.properties.initialPrice) {
         theBestTrigger = curTrigger;
       }
     }
@@ -49,7 +51,7 @@ method.sell = function (amountAsset) {
   })
 }
 
-method.createTrigger = function(trade) {
+method.createTrigger = function (trade) {
   this.advice({
     direction: 'long',
     amount: 0,
@@ -66,7 +68,7 @@ method.createTrigger = function(trade) {
   })
 }
 
-method.updateTrigger = function(trigger, price, start) {
+method.updateTrigger = function (trigger, price, start) {
   this.advice({
     direction: 'long',
     amount: 0,
@@ -79,45 +81,30 @@ method.updateTrigger = function(trigger, price, start) {
   })
 }
 
-method.getAdvice = function(_candle) {
+method.getAdvice = function (_candle) {
   return new Promise((resolve, reject) => {
     let candle = _.cloneDeep(_candle);
-    // remove vwp from train data
-    let trainData = _.map(this.trainData, temp => {
-      return _.omit(temp, ['vwp']);
-    })
-    // remove action & vwp from test data
-    testData = _.map([candle], temp => {
-      temp.start = moment(temp.start).unix()*1000;
-      return _.omit(temp, ['action', 'vwp'])
-    })
-
     let data = {
-      metadata: {
+      model_info: {
+        ...this.settings.modelInfo,
         market_info: marketInfo,
-        train_daterange: {
-          from: new Date(this.trainDaterange.from).getTime(),
-          to: new Date(this.trainDaterange.to).getTime()
-        },
-        backtest_daterange: {
-          from: moment(candle.start).unix()*1000,
-          to: moment(candle.start).clone().add(candleSize, 'm').unix()*1000
-        },
         candle_size: candleSize,
-        model_name: modelName
+        train_daterange: {
+          from: new Date(this.settings.modelInfo.train_daterange.from).getTime(),
+          to: new Date(this.settings.modelInfo.train_daterange.to).getTime()
+        },
       },
-      train_data: this.isSendDataTrain ? [] : trainData,
-      backtest_data: testData
+      candle_start: moment(candle.start).valueOf()
     }
-    this.isSendDataTrain = true;
+
     axios.post(api, data)
       .then(function (response) {
         //handle
-        let result = response.data[moment(candle.start).unix()*1000];
+        let result = response.data.result || 0;
         resolve(result)
       })
       .catch(function (error) {
-        console.log(error + "");
+        console.log(error + "", error.response ? error.response.data : "");
         resolve(0);
       });
   })
@@ -142,18 +129,11 @@ method.init = function () {
 
   this.triggerManagers = [];
 
-  this.isSendDataTrain = false;
-
-  this.trainData = require('../data-for-backtest/train_binance_ETH_USDT_OMLBCTWithStopTrade_1_01-03-19_03-04-19.json');
-  this.trainDaterange = {
-    from: "2019-03-01 01:00:00",
-    to: "2019-04-03 01:00:00"
-  }
 }
 
-method.updateStateTrade = function(candle) {
+method.updateStateTrade = function (candle) {
   //Xét xem vượt ngưỡng thì đặt thời gian dừng
-  if(this.totalProfit <= this.stopTradeLimit) {
+  if (this.totalProfit <= this.stopTradeLimit) {
     let message = ["\n"];
     message.push("*************************************************************************************");
     message.push("Hiện tại hệ thống đã dừng trade!");
@@ -162,7 +142,7 @@ method.updateStateTrade = function(candle) {
 
     this.isAllowTrade = false;
 
-    if(this.breakDuration === -1) {
+    if (this.breakDuration === -1) {
       this.deadLineAllowTradeAgain = null;
     } else {
       this.deadLineAllowTradeAgain = candle.start.clone().add(this.breakDuration * candleSize, "m");
@@ -179,7 +159,7 @@ method.updateStateTrade = function(candle) {
   }
 
   // Cập nhật lại biến isAllowTrade khi hết thời gian chờ
-  if(this.deadLineAllowTradeAgain!= null && !this.isAllowTrade && candle.start.isAfter(this.deadLineAllowTradeAgain)) {
+  if (this.deadLineAllowTradeAgain != null && !this.isAllowTrade && candle.start.isAfter(this.deadLineAllowTradeAgain)) {
     this.isAllowTrade = true;
     // reset phiên
     this.totalProfit = 0;
@@ -222,7 +202,7 @@ method.onTrade = function (trade) {
   }
 }
 
-method.onTriggerFired = function(trigger) {
+method.onTriggerFired = function (trigger) {
   let profit = (trigger.meta.exitPrice - trigger.meta.initialPrice) * 100 / trigger.meta.initialPrice;
   this.totalProfit += profit;
 
@@ -232,13 +212,13 @@ method.onTriggerFired = function(trigger) {
   })
 }
 
-method.onTriggerCreated = function(trigger) {
+method.onTriggerCreated = function (trigger) {
   this.triggerManagers.push(trigger);
 }
 
-method.onTriggerUpdated = function(trigger) {
-  for(let i = 0; i < this.triggerManagers.length; i++) {
-    if(this.triggerManagers[i].id === trigger.id) {
+method.onTriggerUpdated = function (trigger) {
+  for (let i = 0; i < this.triggerManagers.length; i++) {
+    if (this.triggerManagers[i].id === trigger.id) {
       this.triggerManagers[i] = trigger;
       break;
     }
