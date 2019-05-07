@@ -39,7 +39,7 @@ const dateRanges = [
   {
     trainDaterange: {
       from: "2017-11-04T12:00:00.000Z",
-      to: "2018-02-04T12:00:00.000Z"
+      to: "2018-02-05T00:00:00.000Z"
     },
     backtestDaterange: {
       from: "2018-02-05T00:00:00.000Z",
@@ -50,7 +50,7 @@ const dateRanges = [
   {
     trainDaterange: {
       from: "2017-12-04T12:00:00.000Z",
-      to: "2018-03-04T12:00:00.000Z"
+      to: "2018-03-05T00:00:00.000Z"
     },
     backtestDaterange: {
       from: "2018-03-05T00:00:00.000Z",
@@ -61,7 +61,7 @@ const dateRanges = [
   {
     trainDaterange: {
       from: "2018-10-24T12:00:00.000Z",
-      to: "2019-01-20T12:00:00.000Z"
+      to: "2019-01-21T00:00:00.000Z"
     },
     backtestDaterange: {
       from: "2019-01-21T00:00:00.000Z",
@@ -72,7 +72,7 @@ const dateRanges = [
   {
     trainDaterange: {
       from: "2018-05-30T12:00:00.000Z",
-      to: "2018-08-31T12:00:00.000Z"
+      to: "2018-09-01T00:00:00.000Z"
     },
     backtestDaterange: {
       from: "2018-09-01T00:00:00.000Z",
@@ -83,7 +83,7 @@ const dateRanges = [
   {
     trainDaterange: {
       from: "2018-11-28T12:00:00.000Z",
-      to: "2019-02-28T12:00:00.000Z"
+      to: "2019-03-01T00:00:00.000Z"
     },
     backtestDaterange: {
       from: "2019-03-01T00:00:00.000Z",
