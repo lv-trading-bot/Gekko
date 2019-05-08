@@ -170,22 +170,22 @@ var util = {
       for (let i = 0; i < triggers.length; i++) {
         triggersSave.push(triggers[i].trigger);
       }
-      fs.writeFileSync(__dirname + fileName + ".json", JSON.stringify({triggersSave, propogatedTriggers}));
+      fs.writeFileSync('./save_info/' + fileName + ".json", JSON.stringify({triggersSave, propogatedTriggers}));
     } else {
-      fs.writeFileSync(__dirname + fileName + ".json", JSON.stringify({triggersSave: triggers, propogatedTriggers}));
+      fs.writeFileSync('./save_info/' + fileName + ".json", JSON.stringify({triggersSave: triggers, propogatedTriggers}));
     }
   },
   getTriggersStateFromFile: function (fileName) {
-    return (require(__dirname + fileName + ".json")).triggersSave;
+    return (require('./save_info/' + fileName + ".json")).triggersSave;
   },
   getPropogatedTriggersFromFile: function (fileName) {
-    return (require(__dirname + fileName + ".json")).propogatedTriggers;
+    return (require('./save_info/' + fileName + ".json")).propogatedTriggers;
   },
   saveCurrentPortfolio: function (fileName, portfolio) {
-    fs.writeFileSync(__dirname + fileName + ".json", JSON.stringify(portfolio));
+    fs.writeFileSync('./save_info/' + fileName + ".json", JSON.stringify(portfolio));
   },
   getCurrenPortfolio: function (fileName) {
-    return (require(__dirname + fileName + ".json"));
+    return (require('./save_info/' + fileName + ".json"));
   }
 }
 

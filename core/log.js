@@ -13,6 +13,8 @@ var util = require('./util');
 var config = util.getConfig();
 var debug = config.debug;
 var silent = config.silent;
+var production = config.production;
+var loggerAdapter = config.loggerAdapter;
 
 var sendToParent = function() {
   var send = method => (...args) => {
@@ -30,7 +32,10 @@ var sendToParent = function() {
 var Log = function() {
   _.bindAll(this);
   this.env = util.gekkoEnv();
-
+  if(production) {
+    this.logger = (require('./logger/' + loggerAdapter));
+  } 
+  
   if(this.env === 'standalone')
     this.output = console;
   else if(this.env === 'child-process')
@@ -47,6 +52,9 @@ Log.prototype = {
     message += fmt.apply(null, args);
 
     this.output[method](message);
+    if(production) {
+      this.logger[method](message);
+    } 
   },
   error: function() {
     this._write('error', arguments);

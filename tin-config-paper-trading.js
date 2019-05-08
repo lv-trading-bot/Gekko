@@ -37,6 +37,9 @@ config.tradingAdvisor = {
   historySize: 0,
 }
 
+config.production = true;
+config.loggerAdapter = 'file';
+
 config.connectManager = {
   enabled: true,
   baseApi: "http://localhost:3005",

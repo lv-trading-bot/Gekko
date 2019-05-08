@@ -16,13 +16,13 @@ let initApi = baseApi + connectManagerConfig.init,
   portfolioApi = baseApi + connectManagerConfig.portfolio;
 
 const saveId = (id) => {
-  fs.writeFileSync(__dirname + '/idOfManager.json', JSON.stringify({ id }));
+  fs.writeFileSync('./save_info/' + '/idOfManager.json', JSON.stringify({ id }));
 }
 
 const loadId = () => {
   let id = null;
   try {
-    id = JSON.parse((fs.readFileSync(__dirname + '/idOfManager.json'))).id;
+    id = JSON.parse((fs.readFileSync('./save_info/' + '/idOfManager.json'))).id;
   } catch (error) {
   }
   return id;
@@ -64,7 +64,10 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
 
       })
       .catch(err => {
-
+        if (err.response) {
+          log.warn(err.response.data);
+        }
+        log.warn('' + err);
       })
   }
 };
@@ -82,7 +85,10 @@ Actor.prototype.processTradeCompleted = function (trade) {
 
       })
       .catch(err => {
-
+        if (err.response) {
+          log.warn(err.response.data);
+        }
+        log.warn('' + err);
       })
   }
 
@@ -101,7 +107,10 @@ Actor.prototype.processTriggerCreated = function (trigger) {
 
       })
       .catch(err => {
-
+        if (err.response) {
+          log.warn(err.response.data);
+        }
+        log.warn('' + err);
       })
   }
 
@@ -121,7 +130,10 @@ Actor.prototype.processTriggerUpdated = function (trigger) {
 
       })
       .catch(err => {
-
+        if (err.response) {
+          log.warn(err.response.data);
+        }
+        log.warn('' + err);
       })
   }
 }
