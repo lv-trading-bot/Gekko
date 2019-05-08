@@ -31,10 +31,11 @@ const loadId = () => {
 var Actor = function () {
   this.price = false;
   let localId = loadId();
-  axios.post(initApi, { config, asset: watch.asset, currency: watch.currency })
+  axios.post(initApi, { config, asset: watch.asset, currency: watch.currency, id: localId })
     .then(res => {
       this.id = localId ? localId : res.data.id;
       saveId(this.id);
+      console.log(this.id)
     })
     .catch(err => {
       if (err.response) {
