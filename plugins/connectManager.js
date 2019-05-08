@@ -30,22 +30,20 @@ const loadId = () => {
 
 var Actor = function () {
   this.price = false;
-  this.id = loadId();
-  if (!this.id) {
-    axios.get(initApi, {})
-      .then(res => {
-        this.id = res.data.id;
-        saveId(this.id);
-      })
-      .catch(err => {
-        if (err.response) {
-          log.warn(err.response.data);
-        }
-        log.warn('' + err);
-        this.id = `canot_get_id_${(new Date()).getTime()}_${Math.floor(Math.random() * 1000)}`;
-        saveId(this.id);
-      })
-  }
+  let localId = loadId();
+  axios.post(initApi, { config, asset: watch.asset, currency: watch.currency })
+    .then(res => {
+      this.id = localId ? localId : res.data.id;
+      saveId(this.id);
+    })
+    .catch(err => {
+      if (err.response) {
+        log.warn(err.response.data);
+      }
+      log.warn('' + err);
+      this.id = localId ? localId : `canot_get_id_${(new Date()).getTime()}_${Math.floor(Math.random() * 1000)}`;
+      saveId(this.id);
+    })
 
   _.bindAll(this);
 }
