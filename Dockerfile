@@ -28,7 +28,7 @@ WORKDIR ../
 COPY . /usr/src/app
 
 EXPOSE 3003
-RUN chmod +x /usr/src/app/docker-entrypoint.sh
+# RUN chmod +x /usr/src/app/docker-entrypoint.sh
 # ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]
 
 CMD ["node", "gekko", "--config", "tin-config-paper-trading.js"]
