@@ -24,6 +24,7 @@ const loadId = () => {
   try {
     id = JSON.parse((fs.readFileSync('./save_info/' + '/idOfManager.json'))).id;
   } catch (error) {
+    log.warn(error)
   }
   return id;
 }
@@ -41,7 +42,7 @@ var Actor = function () {
       if (err.response) {
         log.warn(err.response.data);
       }
-      log.warn('' + err);
+      log.warn(err);
       this.id = localId ? localId : `canot_get_id_${(new Date()).getTime()}_${Math.floor(Math.random() * 1000)}`;
       saveId(this.id);
     })
@@ -67,7 +68,7 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
         if (err.response) {
           log.warn(err.response.data);
         }
-        log.warn('' + err);
+        log.warn(err);
       })
   }
 };
@@ -88,7 +89,7 @@ Actor.prototype.processTradeCompleted = function (trade) {
         if (err.response) {
           log.warn(err.response.data);
         }
-        log.warn('' + err);
+        log.warn(err);
       })
   }
 
@@ -110,7 +111,7 @@ Actor.prototype.processTriggerCreated = function (trigger) {
         if (err.response) {
           log.warn(err.response.data);
         }
-        log.warn('' + err);
+        log.warn(err);
       })
   }
 
@@ -133,7 +134,7 @@ Actor.prototype.processTriggerUpdated = function (trigger) {
         if (err.response) {
           log.warn(err.response.data);
         }
-        log.warn('' + err);
+        log.warn(err);
       })
   }
 }

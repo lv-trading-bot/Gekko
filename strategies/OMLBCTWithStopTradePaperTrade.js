@@ -7,8 +7,8 @@ const axios = require('axios');
 var utils = require('../core/util');
 let candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
 let marketInfo = utils.getConfig().watch;
-
-const api = "http://localhost:5000/live";
+const ML_base_api = process.env.LIVE_TRADE_MANAGER_BASE_API;
+const api = ML_base_api ? `${ML_base_api}/advice` : "http://localhost:5000/live";
 // let's create our own method
 var method = {};
 
@@ -97,6 +97,7 @@ method.getAdvice = function (_candle) {
       candle_start: moment(candle.start).valueOf()
     }
 
+    log.info('get advice');
     axios.post(api, data)
       .then(function (response) {
         //handle
@@ -105,6 +106,7 @@ method.getAdvice = function (_candle) {
       })
       .catch(function (error) {
         console.log(error + "", error.response ? error.response.data : "");
+        log.warn(error, error.response ? error.response.data : "");
         resolve(0);
       });
   })

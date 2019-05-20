@@ -33,7 +33,7 @@ config.watch = {
 config.tradingAdvisor = {
   enabled: true,
   method: 'OMLBCTWithStopTradePaperTrade',
-  candleSize: 1,
+  candleSize: 60,
   historySize: 0,
 }
 
@@ -42,7 +42,7 @@ config.loggerAdapter = 'file';
 
 config.connectManager = {
   enabled: true,
-  baseApi: "http://localhost:3005",
+  baseApi: process.env.LIVE_TRADE_MANAGER_BASE_API || "http://localhost:3004",
   init: "/init",
   reconnect: "/reconnect",
   trigger: "/trigger",
@@ -51,8 +51,8 @@ config.connectManager = {
 }
 
 config['OMLBCTWithStopTradePaperTrade'] = {
-  stopLoss: -0.005,
-  takeProfit: 0.01,
+  stopLoss: -10,
+  takeProfit: 2,
   amountForOneTrade: 100,
   expirationPeriod: 24,
   stopTradeLimit: -100,
@@ -66,7 +66,7 @@ config['OMLBCTWithStopTradePaperTrade'] = {
       {
         name: 'omlbct',
         params: {
-          'takeProfit': 0.25,
+          'takeProfit': 2,
           'stopLoss': -10,
           'expirationPeriod': 24
         }
@@ -74,10 +74,10 @@ config['OMLBCTWithStopTradePaperTrade'] = {
     ],
     label: 'omlbct',
     train_daterange: {
-      from: '2019-04-01T00:00:00.000Z',
-      to: '2019-04-15T00:00:00.000Z',
+      from: '2019-01-01T00:00:00.000Z',
+      to: '2019-04-01T00:00:00.000Z',
     },
-    rolling_step: 3
+    rolling_step: 11
   }
 }
 
@@ -135,7 +135,7 @@ config.pushover = {
 
 // want Gekko to send a mail on buy or sell advice?
 config.mailer = {
-  enabled: false, // Send Emails if true, false to turn off
+  enabled: true, // Send Emails if true, false to turn off
   sendMailOnStart: true, // Send 'Gekko starting' message if true, not if false
 
   email: 'phuotm6tet@gmail.com', // Your Gmail address
@@ -206,7 +206,7 @@ config.ircbot = {
 }
 
 config.telegrambot = {
-  enabled: false,
+  enabled: true,
   // Receive notifications for trades and warnings/errors related to trading
   emitTrades: true,
   token: '851670778:AAE3MQ0Jz1IqX-yDQhAfHuO43E22_oRYRQ4',
