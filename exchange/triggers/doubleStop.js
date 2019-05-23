@@ -1,5 +1,7 @@
 const EventEmitter = require('events');
 const moment = require('moment');
+const util = require('../../core/util');
+const mode = util.gekkoMode();
 
 /**
  * @param initialPrice
@@ -57,6 +59,8 @@ class DoubleStop extends EventEmitter {
             initialPrice: this.initialPrice,
             trend,
             expires: this.expires,
+            assetAmount: this.assetAmount,
+            exitAt: (mode === "backtest" ? candle.start.clone().utc().add(1, 'm') : moment().utc()),
             exitPrice: candle.close,
             exitCandle: candle
           },
@@ -73,6 +77,8 @@ class DoubleStop extends EventEmitter {
             initialPrice: this.initialPrice,
             trend,
             expires: this.expires,
+            assetAmount: this.assetAmount,
+            exitAt: (mode === "backtest" ? candle.start.clone().utc().add(1, 'm') : moment().utc()),
             exitPrice: candle.close,
             exitCandle: candle
           },
@@ -95,6 +101,8 @@ class DoubleStop extends EventEmitter {
             initialPrice: this.initialPrice,
             trend,
             expires: this.expires,
+            assetAmount: this.assetAmount,
+            exitAt: moment().utc(),
             exitPrice: candle.close,
             exitCandle: {
               start: moment().utc(),
@@ -113,6 +121,8 @@ class DoubleStop extends EventEmitter {
             initialPrice: this.initialPrice,
             trend,
             expires: this.expires,
+            assetAmount: this.assetAmount,
+            exitAt: moment().utc(),
             exitPrice: candle.close,
             exitCandle: {
               start: moment().utc(),
