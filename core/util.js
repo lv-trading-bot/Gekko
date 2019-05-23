@@ -176,16 +176,16 @@ var util = {
     }
   },
   getTriggersStateFromFile: function (fileName) {
-    return (require('./save_info/' + fileName + ".json")).triggersSave;
+    return (JSON.parse(fs.readFileSync('./save_info/' + fileName + ".json"))).triggersSave;
   },
   getPropogatedTriggersFromFile: function (fileName) {
-    return (require('./save_info/' + fileName + ".json")).propogatedTriggers;
+    return (JSON.parse(fs.readFileSync('./save_info/' + fileName + ".json"))).propogatedTriggers;
   },
   saveCurrentPortfolio: function (fileName, portfolio) {
     fs.writeFileSync('./save_info/' + fileName + ".json", JSON.stringify(portfolio));
   },
   getCurrenPortfolio: function (fileName) {
-    return (require('./save_info/' + fileName + ".json"));
+    return (JSON.parse(fs.readFileSync('./save_info/' + fileName + ".json")));
   }
 }
 

@@ -39,6 +39,7 @@ const PaperTrader = function () {
 
     this.portfolio = util.getCurrenPortfolio(nameFileSavePortfolio);
   } catch (err) {
+    log.info('cannot get portfolio', err);
     this.portfolio = {
       asset: calcConfig.simulationBalance.asset,
       currency: calcConfig.simulationBalance.currency,
@@ -60,6 +61,7 @@ const PaperTrader = function () {
 }
 
 PaperTrader.prototype.loadTriggers = function () {
+  log.info('begin load trigger');
   let triggers = [];
   try {
     if (util.gekkoMode() !== 'realtime') throw new Error("");
@@ -82,7 +84,8 @@ PaperTrader.prototype.loadTriggers = function () {
     })
 
     // Trường hợp k đủ asset thì cancel toàn bộ trigger vừa load lên
-    if (totalAssetFromTriggers > this.portfolio.asset) {
+    if (Math.abs(totalAssetFromTriggers - this.portfolio.asset) >= 0.00001) {
+      log.info('cannot load trigger, because total asset form trigger is not match with this.portfolio.asset')
       this.activeDoubleStopTriggers = [];
     }
     if (this.activeDoubleStopTriggers.length > 0) {
@@ -92,7 +95,7 @@ PaperTrader.prototype.loadTriggers = function () {
       }, 1000)
     }
   } catch (error) {
-
+    log.info('cannot load trigger', error);
   }
 }
 

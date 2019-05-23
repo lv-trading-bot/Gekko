@@ -103,7 +103,7 @@ config.paperTrader = {
 config.performanceAnalyzer = {
   enabled: true,
   riskFreeReturn: 5,
-  roundTripReportMode: "DEFAULT"
+  roundTripReportMode: "BY_DOUBLESTOP_TRIGGER"
 }
 
 // Want Gekko to perform real trades on buy or sell advice?
