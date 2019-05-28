@@ -1,13 +1,14 @@
-var log = require('../core/log');
+const log = require('../../core/log');
 var moment = require('moment');
 var fs = require('fs');
 var _ = require('lodash');
-var util = require('../core/util.js');
+var util = require('../../core/util');
 var config = util.getConfig();
 let watch = config.watch;
 var connectManagerConfig = config.connectManager;
 let baseApi = connectManagerConfig.baseApi;
 let axios = require('axios');
+let socket = require('./socket');
 
 let initApi = baseApi + connectManagerConfig.init,
   reconnectApi = baseApi + connectManagerConfig.reconnect,
@@ -29,6 +30,14 @@ const loadId = () => {
   return id;
 }
 
+const connectSocket = (id) => {
+  // Connect socket
+  socket.connect(baseApi, {
+    name: "Gekko", 
+    id
+  })
+}
+
 var Actor = function () {
   this.price = false;
   let localId = loadId();
@@ -36,7 +45,8 @@ var Actor = function () {
     .then(res => {
       this.id = localId ? localId : res.data.id;
       saveId(this.id);
-      console.log(this.id)
+      log.info(this.id);
+      connectSocket(this.id);
     })
     .catch(err => {
       if (err.response) {
@@ -45,6 +55,7 @@ var Actor = function () {
       log.warn(err);
       this.id = localId ? localId : `canot_get_id_${(new Date()).getTime()}_${Math.floor(Math.random() * 1000)}`;
       saveId(this.id);
+      connectSocket(this.id);
     })
 
   _.bindAll(this);
