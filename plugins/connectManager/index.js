@@ -37,7 +37,7 @@ const connectSocket = (id, asset, currency) => {
     id,
     asset,
     currency
-  })
+  }, id)
 }
 
 var Actor = function () {

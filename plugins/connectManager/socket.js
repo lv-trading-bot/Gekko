@@ -5,12 +5,14 @@ const type = 'system';
 
 let socket;
 
-const connect = (url, info) => {
+// let random_id = `${(new Date()).getTime()}_${Math.random()}`;
+
+const connect = (url, info, id) => {
     socket = io.connect(url);
 
     socket.on("connect", () => {
         log.info('Connect to live trading manager successfully!');
-      socket.emit("onConnect", type, `${(new Date()).getTime()}_${Math.random()}`, info);
+      socket.emit("onConnect", type, id, info);
     })
 
     socket.on('connect_error', function() {
