@@ -72,7 +72,7 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
       "portfolio": {
         ...portfolio,
         price: this.price,
-        lastUpdate: moment().utc()
+        last_update: moment().utc()
       },
     })
       .then(res => {
