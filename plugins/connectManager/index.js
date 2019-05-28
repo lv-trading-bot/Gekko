@@ -71,8 +71,9 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
       "currency": watch.currency,
       "portfolio": {
         ...portfolio,
-        price: this.price
-      }
+        price: this.price,
+        lastUpdate: moment().utc()
+      },
     })
       .then(res => {
 
@@ -84,6 +85,7 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
         log.warn(err);
       })
   }
+  this.lastPortfolio = portfolio;
 };
 
 Actor.prototype.processTradeCompleted = function (trade) {
@@ -168,6 +170,9 @@ Actor.prototype.processTriggerWasRestore = function (triggers) {
 
 Actor.prototype.processCandle = function (candle, done) {
   this.price = candle.close;
+  if(this.lastPortfolio) {
+    this.processPortfolioChange(this.lastPortfolio);
+  }
   done();
 }
 
