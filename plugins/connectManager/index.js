@@ -30,11 +30,13 @@ const loadId = () => {
   return id;
 }
 
-const connectSocket = (id) => {
+const connectSocket = (id, asset, currency) => {
   // Connect socket
   socket.connect(baseApi, {
     name: "Gekko", 
-    id
+    id,
+    asset,
+    currency
   })
 }
 
@@ -46,7 +48,7 @@ var Actor = function () {
       this.id = localId ? localId : res.data.id;
       saveId(this.id);
       log.info(this.id);
-      connectSocket(this.id);
+      connectSocket(this.id, watch.asset, watch.currency);
     })
     .catch(err => {
       if (err.response) {
@@ -55,7 +57,7 @@ var Actor = function () {
       log.warn(err);
       this.id = localId ? localId : `canot_get_id_${(new Date()).getTime()}_${Math.floor(Math.random() * 1000)}`;
       saveId(this.id);
-      connectSocket(this.id);
+      connectSocket(this.id, watch.asset, watch.currency);
     })
 
   _.bindAll(this);
