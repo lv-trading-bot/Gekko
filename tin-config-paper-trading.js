@@ -210,6 +210,9 @@ config.telegrambot = {
   // Receive notifications for trades and warnings/errors related to trading
   emitTrades: true,
   token: '851670778:AAE3MQ0Jz1IqX-yDQhAfHuO43E22_oRYRQ4',
+  defaultSubcribes: [/*721265885,*/ -393431991]
+  // 721265885: Xuân Tin Id
+  // -393431991: Group Trading Id
 };
 
 config.twitter = {

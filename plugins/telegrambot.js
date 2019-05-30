@@ -5,6 +5,7 @@ const config = require('../core/util').getConfig();
 const telegrambot = config.telegrambot;
 const emitTrades = telegrambot.emitTrades;
 const utc = moment.utc;
+const fs = require('fs');
 const telegram = require("node-telegram-bot-api");
 
 const Actor = function() {
@@ -30,8 +31,22 @@ const Actor = function() {
   this.rawCommands = _.keys(this.commands);
   this.chatId = null;
   this.subscribers = [];
+  if(!_.isEmpty(telegrambot.defaultSubcribes)) {
+    this.subscribers = this.subscribers.concat(telegrambot.defaultSubcribes);
+  }
   this.bot = new telegram(telegrambot.token, { polling: true });
   this.bot.onText(/(.+)/, this.verifyQuestion);
+
+  this.name = "unknown_yet";
+  setTimeout(() => {
+    let id = "unknown";
+    try {
+      id = JSON.parse((fs.readFileSync('./save_info/' + '/idOfManager.json'))).id;      
+    } catch (error) {
+      log.error(error);
+    }
+    this.name = `${config.watch.asset}_${config.watch.currency}_${id}`;
+  }, 60*1000);
 };
 
 Actor.prototype.processCandle = function(candle, done) {
@@ -55,14 +70,14 @@ if(emitTrades) {
     '\nAction: ' + tradeInitiated.action + '\nPortfolio: ' +
     JSON.stringify(tradeInitiated.portfolio) + '\nBalance: ' + tradeInitiated.balance;
     for (let i = 0; i < this.subscribers.length; i++) {
-      this.bot.sendMessage(this.subscribers[i], message);
+      this.bot.sendMessage(this.subscribers[i], this.name + "\n" + message);
     }
   }
   
   Actor.prototype.processTradeCancelled = function (tradeCancelled) {
     var message = 'Trade cancelled. ID: ' + tradeCancelled.id;
     for (let i = 0; i < this.subscribers.length; i++) {
-      this.bot.sendMessage(this.subscribers[i], message);
+      this.bot.sendMessage(this.subscribers[i], this.name + "\n" + message);
     }
   }
   
@@ -70,7 +85,7 @@ if(emitTrades) {
     var message = 'Trade aborted. ID: ' + tradeAborted.id +
     '\nNot creating order! Reason: ' + tradeAborted.reason;
     for (let i = 0; i < this.subscribers.length; i++) {
-      this.bot.sendMessage(this.subscribers[i], message);
+      this.bot.sendMessage(this.subscribers[i], this.name + "\n" + message);
     }
   }
   
@@ -78,7 +93,7 @@ if(emitTrades) {
     var message = 'Trade errored. ID: ' + tradeErrored.id +
     '\nReason: ' + tradeErrored.reason;
     for (let i = 0; i < this.subscribers.length; i++) {
-      this.bot.sendMessage(this.subscribers[i], message);
+      this.bot.sendMessage(this.subscribers[i], this.name + "\n" + message);
     }
   }
   
@@ -93,9 +108,27 @@ if(emitTrades) {
     '\nFee percent: ' + tradeCompleted.feePercent +
     '\nEffective price: ' + tradeCompleted.effectivePrice;
     for (let i = 0; i < this.subscribers.length; i++) {
-      this.bot.sendMessage(this.subscribers[i], message);
+      this.bot.sendMessage(this.subscribers[i], this.name + "\n" + message);
     } 
   }
+}
+
+Actor.prototype.processTriggerFired = function(trigger) {
+  this.subscribers.forEach(chatId => {
+    this.emitTrigger(chatId, "Trigger Fired", trigger);
+  })
+}
+
+Actor.prototype.processTriggerCreated = function(trigger) {
+  this.subscribers.forEach(chatId => {
+    this.emitTrigger(chatId, "Trigger Created", trigger);
+  })
+}
+
+Actor.prototype.processTriggerUpdated = function(trigger) {
+  this.subscribers.forEach(chatId => {
+    this.emitTrigger(chatId, "Trigger Update", trigger);
+  })
 }
 
 Actor.prototype.verifyQuestion = function(msg, text) {
@@ -108,24 +141,24 @@ Actor.prototype.verifyQuestion = function(msg, text) {
 };
 
 Actor.prototype.emitStart = function() {
-  this.bot.sendMessage(this.chatId, 'Hello! How can I help you?');
+  this.bot.sendMessage(this.chatId, this.name + "\n" + 'Hello! How can I help you?');
 };
 
 Actor.prototype.emitSubscribe = function() {
   if (this.subscribers.indexOf(this.chatId) === -1) {
     this.subscribers.push(this.chatId);
-    this.bot.sendMessage(this.chatId, `Success! Got ${this.subscribers.length} subscribers.`);
+    this.bot.sendMessage(this.chatId, this.name + "\n" + `Success! Got ${this.subscribers.length} subscribers.`);
   } else {
-    this.bot.sendMessage(this.chatId, "You are already subscribed.");
+    this.bot.sendMessage(this.chatId, this.name + "\n" + "You are already subscribed.");
   }
 };
 
 Actor.prototype.emitUnSubscribe = function() {
   if (this.subscribers.indexOf(this.chatId) > -1) {
     this.subscribers.splice(this.subscribers.indexOf(this.chatId), 1);
-    this.bot.sendMessage(this.chatId, "Success!");
+    this.bot.sendMessage(this.chatId, this.name + "\n" + "Success!");
   } else {
-    this.bot.sendMessage(this.chatId, "You are not subscribed.");
+    this.bot.sendMessage(this.chatId, this.name + "\n" + "You are not subscribed.");
   }
 };
 
@@ -157,9 +190,9 @@ Actor.prototype.emitAdvice = function(chatId) {
   }
 
   if (chatId) {
-    this.bot.sendMessage(chatId, message);
+    this.bot.sendMessage(chatId, this.name + "\n" + message);
   } else {
-    this.bot.sendMessage(this.chatId, message);
+    this.bot.sendMessage(this.chatId, this.name + "\n" + message);
   }
 };
 
@@ -180,12 +213,11 @@ Actor.prototype.emitPrice = function() {
     this.priceTime.fromNow(),
     ')'
   ].join('');
-
-  this.bot.sendMessage(this.chatId, message);
+  this.bot.sendMessage(this.chatId, this.name + "\n" + message);
 };
 
 Actor.prototype.emitDonate = function() {
-  this.bot.sendMessage(this.chatId, telegrambot.donate);
+  this.bot.sendMessage(this.chatId, this.name + "\n" + telegrambot.donate);
 };
 
 Actor.prototype.emitHelp = function() {
@@ -197,11 +229,25 @@ Actor.prototype.emitHelp = function() {
     'Possible commands are:'
   );
   message = message.substr(0, _.size(message) - 1) + '.';
-  this.bot.sendMessage(this.chatId, message);
+  this.bot.sendMessage(this.chatId, this.name + "\n" + message);
 };
 
 Actor.prototype.logError = function(message) {
   log.error('Telegram ERROR:', message);
 };
+
+Actor.prototype.emitTrigger = function(chatId, reason, trigger) {
+  let message = [
+    reason,
+    '\n',
+    JSON.stringify(trigger)
+  ].join('');
+
+  if (chatId) {
+    this.bot.sendMessage(chatId, this.name + "\n" + message);
+  } else {
+    this.bot.sendMessage(this.chatId, this.name + "\n" + message);
+  }
+}
 
 module.exports = Actor;
