@@ -153,7 +153,8 @@ MyBacktestResultReporter.prototype.writeToDisk = function(backtest, next) {
   fs.readFile(filePath, (err, data) => {
     let dataOut = config.myBacktestResultExporter.dataOut;
     let table = dataOut.table;
-    const mergeData = (oldData) => {
+    
+    const getDataToAppend = () => {
       let record = '';
       let table = config.myBacktestResultExporter.dataOut.table;
       for(let key in table.rawData) {
@@ -163,7 +164,11 @@ MyBacktestResultReporter.prototype.writeToDisk = function(backtest, next) {
         record += `${eval(table.recipe[key])},`;
       }
       record += '\n';
-      return oldData + record;
+      return record;
+    }
+
+    const mergeData = (oldData) => {  
+      return oldData + getDataToAppend();
     }
 
     if(err) {
@@ -184,8 +189,10 @@ MyBacktestResultReporter.prototype.writeToDisk = function(backtest, next) {
       strData = mergeData(strData);
       fs.writeFileSync(filePath, strData);
     } else {
-      strData = mergeData(data.toString());
-      fs.writeFileSync(filePath, strData);
+      // strData = mergeData(data.toString());
+      // fs.writeFileSync(filePath, strData);
+      let newData = getDataToAppend();
+      fs.appendFileSync(filePath, newData);
     }
     next()
   })
