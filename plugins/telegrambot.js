@@ -240,7 +240,7 @@ Actor.prototype.emitTrigger = function(chatId, reason, trigger) {
   let message = [
     reason,
     '\n',
-    JSON.stringify(trigger)
+    JSON.stringify(trigger, null, 2)
   ].join('');
 
   if (chatId) {
