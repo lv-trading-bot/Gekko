@@ -43,6 +43,7 @@ const connectSocket = (id, asset, currency) => {
 var Actor = function () {
   this.price = false;
   let localId = loadId();
+  this.isNew = !localId;
   axios.post(initApi, { config, asset: watch.asset, currency: watch.currency, id: localId })
     .then(res => {
       this.id = localId ? localId : res.data.id;
@@ -74,6 +75,7 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
         price: this.price,
         last_update: moment().utc()
       },
+      "is_new": this.isNew
     })
       .then(res => {
 
@@ -84,6 +86,7 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
         }
         log.warn(err);
       })
+    this.isNew = false;
   }
   this.lastPortfolio = portfolio;
 };
