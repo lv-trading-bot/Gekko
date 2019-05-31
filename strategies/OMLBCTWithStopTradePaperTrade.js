@@ -1,10 +1,10 @@
 // helpers
 var _ = require('lodash');
 var log = require('../core/log');
-// const axios = require('axios');
 const moment = require('moment');
 const axios = require('axios');
 var utils = require('../core/util');
+const fs = require('fs');
 let candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
 let marketInfo = utils.getConfig().watch;
 const ML_base_api = process.env.LIVE_TRADE_MANAGER_BASE_API;
@@ -81,8 +81,19 @@ method.updateTrigger = function (trigger, price, start) {
   })
 }
 
+const loadId = () => {
+  let id = null;
+  try {
+    id = JSON.parse((fs.readFileSync('./save_info/' + '/idOfManager.json'))).id;
+  } catch (error) {
+    log.warn(error)
+  }
+  return id;
+}
+
 method.getAdvice = function (_candle) {
   return new Promise((resolve, reject) => {
+    let id = loadId();
     let candle = _.cloneDeep(_candle);
     let data = {
       model_info: {
@@ -94,7 +105,10 @@ method.getAdvice = function (_candle) {
           to: new Date(this.settings.modelInfo.train_daterange.to).getTime()
         },
       },
-      candle_start: moment(candle.start).valueOf()
+      candle_start: moment(candle.start).valueOf(),
+      id: id || "cannot_get_id",
+      asset: marketInfo.asset,
+      currency: marketInfo.currency
     }
 
     log.info('get advice');
