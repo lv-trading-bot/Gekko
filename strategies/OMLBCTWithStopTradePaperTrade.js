@@ -8,7 +8,8 @@ const fs = require('fs');
 let candleSize = utils.getConfig()['tradingAdvisor'].candleSize;
 let marketInfo = utils.getConfig().watch;
 const ML_base_api = process.env.LIVE_TRADE_MANAGER_BASE_API;
-const api = ML_base_api ? `${ML_base_api}/advice` : "http://localhost:5000/live";
+const api = ML_base_api ? `${ML_base_api}/advice` : "http://localhost:3004/advice";
+const apiStopLoss = ML_base_api ? `${ML_base_api}/pair-control` : "http://localhost:3004/pair-control";
 // let's create our own method
 var method = {};
 
@@ -156,7 +157,6 @@ method.updateStateTrade = function (candle) {
     message.push(`Hiện tại đã lỗ ${this.totalProfit.toFixed(2)}%`);
     message.push("Trong khoảng thời gian dừng trade, hệ thống sẽ bán các lệnh đã mua như thường lệ!");
 
-    this.isAllowTrade = false;
 
     if (this.breakDuration === -1) {
       this.deadLineAllowTradeAgain = null;
@@ -169,6 +169,25 @@ method.updateStateTrade = function (candle) {
     message.push("*************************************************************************************");
     this.notify(message.join("\n\t"));
     log.info(message.join("\n\t"));
+
+    let id = loadId();
+
+    let data = {
+      id: id || "cannot_get_id",
+      asset: marketInfo.asset,
+      currency: marketInfo.currency,
+      accept_buy: false,
+      set_by: "gekko"
+    };
+
+    axios.put(apiStopLoss, data)
+      .then(function (response) {
+      })
+      .catch(function (error) {
+        this.isAllowTrade = false;
+        console.log(error + "", error.response ? error.response.data : "");
+        log.warn(error, error.response ? error.response.data : "");
+      });
   } else if (this.totalProfit > 0) {
     //Bỏ những lần trade dương đi, khi nào lỗ mới dừng
     this.totalProfit = 0;
@@ -242,6 +261,6 @@ method.onTriggerUpdated = function (trigger) {
 }
 
 // for backtest
-method.finished = function () {}
+method.finished = function () { }
 
 module.exports = method;

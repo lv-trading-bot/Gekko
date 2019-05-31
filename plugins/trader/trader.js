@@ -294,7 +294,7 @@ const checkValidBalance = (portfolio, price, action, asset) => {
   if (action === 'buy') {
     if (asset * price > portfolio.currency) {
       res.valid = false;
-      res.reason = `Not enough monney to buy. (${asset * price}/${portfolio.currency})`;
+      res.reason = `Not enough money to buy. (${asset * price}/${portfolio.currency})`;
     }
   } else if (action === 'sell') {
     if (asset > portfolio.asset) {
