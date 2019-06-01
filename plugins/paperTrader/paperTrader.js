@@ -171,6 +171,7 @@ if (util.gekkoMode() === 'realtime') {
       let cost;
       // let amount;
       let amountWithFee = 0;
+      let effectivePrice = 0;
 
       // virtually trade all {currency} to {asset}
       // at the current price (minus fees)
@@ -184,6 +185,7 @@ if (util.gekkoMode() === 'realtime') {
         this.portfolio.asset += amountWithFee;
         this.portfolio.currency -= amount;
 
+        effectivePrice = price + (price * (1 - this.fee));
         // this.exposed = true;
         // this.trades++;
       }
@@ -200,11 +202,10 @@ if (util.gekkoMode() === 'realtime') {
         this.portfolio.currency += amountWithFee;
         this.portfolio.asset -= amount;
 
+        effectivePrice = price * this.fee;
         // this.exposed = false;
         // this.trades++;
       }
-
-      const effectivePrice = price * this.fee;
 
       resolve({
         cost,

@@ -12,6 +12,7 @@ const moment = require('moment');
 const checker = require('./exchangeChecker');
 const errors = require('./exchangeErrors');
 const Portfolio = require('./portfolioManager');
+const log = require('../core/log');
 // const Market = require('./market');
 const orders = require('./orders');
 const Trigger = require('./trigger');
@@ -58,9 +59,10 @@ class Broker {
     if(config.customInterval) {
       this.interval = config.customInterval;
       this.api.interval = config.customInterval;
-      console.log(new Date, '[GB] setting custom interval to', config.customInterval);
+      log.info(new Date, '[GB] setting custom interval to', config.customInterval);
     } else {
-      this.interval = this.api.interval || 1500;
+      this.api.interval = this.api.interval || 1000;
+      this.interval = this.api.interval || 1000;
     }
 
     this.market = config.currency.toUpperCase() + config.asset.toUpperCase();
@@ -109,10 +111,10 @@ class Broker {
 
       if(err) {
         if(err.message) {
-          console.log(this.api.name, err.message);
+          log.info(this.api.name, err.message);
           throw err;
         } else {
-          console.log('err not wrapped in error:', err);
+          log.error('err not wrapped in error:', err);
           throw new errors.ExchangeError(err);
         }
       }

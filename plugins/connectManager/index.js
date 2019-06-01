@@ -1,13 +1,14 @@
-var log = require('../core/log');
+const log = require('../../core/log');
 var moment = require('moment');
 var fs = require('fs');
 var _ = require('lodash');
-var util = require('../core/util.js');
+var util = require('../../core/util');
 var config = util.getConfig();
 let watch = config.watch;
 var connectManagerConfig = config.connectManager;
 let baseApi = connectManagerConfig.baseApi;
 let axios = require('axios');
+let socket = require('./socket');
 
 let initApi = baseApi + connectManagerConfig.init,
   reconnectApi = baseApi + connectManagerConfig.reconnect,
@@ -29,14 +30,26 @@ const loadId = () => {
   return id;
 }
 
+const connectSocket = (id, asset, currency) => {
+  // Connect socket
+  socket.connect(baseApi, {
+    name: "Gekko", 
+    id,
+    asset,
+    currency
+  }, id)
+}
+
 var Actor = function () {
   this.price = false;
   let localId = loadId();
+  this.isNew = !localId;
   axios.post(initApi, { config, asset: watch.asset, currency: watch.currency, id: localId })
     .then(res => {
       this.id = localId ? localId : res.data.id;
       saveId(this.id);
-      console.log(this.id)
+      log.info(this.id);
+      connectSocket(this.id, watch.asset, watch.currency);
     })
     .catch(err => {
       if (err.response) {
@@ -45,6 +58,7 @@ var Actor = function () {
       log.warn(err);
       this.id = localId ? localId : `canot_get_id_${(new Date()).getTime()}_${Math.floor(Math.random() * 1000)}`;
       saveId(this.id);
+      connectSocket(this.id, watch.asset, watch.currency);
     })
 
   _.bindAll(this);
@@ -58,8 +72,10 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
       "currency": watch.currency,
       "portfolio": {
         ...portfolio,
-        price: this.price
-      }
+        price: this.price,
+        last_update: moment().utc()
+      },
+      "is_new": this.isNew
     })
       .then(res => {
 
@@ -70,7 +86,9 @@ Actor.prototype.processPortfolioChange = function (portfolio) {
         }
         log.warn(err);
       })
+    this.isNew = false;
   }
+  this.lastPortfolio = portfolio;
 };
 
 Actor.prototype.processTradeCompleted = function (trade) {
@@ -155,6 +173,9 @@ Actor.prototype.processTriggerWasRestore = function (triggers) {
 
 Actor.prototype.processCandle = function (candle, done) {
   this.price = candle.close;
+  if(this.lastPortfolio) {
+    this.processPortfolioChange(this.lastPortfolio);
+  }
   done();
 }
 

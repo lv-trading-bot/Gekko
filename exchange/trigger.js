@@ -2,6 +2,7 @@
 // it live market data.
 
 const _ = require('lodash');
+const log =  require('../core/log');
 
 const exchangeUtils = require('./exchangeUtils');
 const bindAll = exchangeUtils.bindAll;
@@ -54,12 +55,13 @@ class Trigger {
     }
     
     if(err) {
-      return console.log('[GB/trigger] failed to fetch ticker:', err);
+      log.error('[GB/trigger] failed to fetch ticker:', err);
+    } else {
+
+      this.price = ticker[this.tickerProp];
+
+      this.trigger.updatePrice(this.price);
     }
-
-    this.price = ticker[this.tickerProp];
-
-    this.trigger.updatePrice(this.price);
     this.scheduleFetch();
   }
 
