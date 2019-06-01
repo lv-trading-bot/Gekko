@@ -33,7 +33,7 @@ config.watch = {
 config.tradingAdvisor = {
   enabled: true,
   method: 'OMLBCTWithStopTradePaperTrade',
-  candleSize: 1,
+  candleSize: 60,
   historySize: 0,
 }
 
@@ -55,20 +55,27 @@ config['OMLBCTWithStopTradePaperTrade'] = {
   takeProfit: 2,
   amountForOneTrade: 100,
   expirationPeriod: 24,
+  decisionThreshold: 0.5,
   stopTradeLimit: -100,
   // totalWatchCandles: 24,
   breakDuration: -1,
   modelInfo: {
-    model_type: 'rolling',
-    model_name: 'gradient_boosting',
-    lag: 0,
-    features: ['start', 'open', 'high', 'low', 'close', 'trades', 'volumes',
+    model_type: 'fixed',
+    model_name: 'random_forest',
+    lag: 23,
+    features: ['start', 'open', 'high', 'low', 'close', 'trades', 'volume',
       {
         name: 'omlbct',
         params: {
           'takeProfit': 2,
           'stopLoss': -10,
           'expirationPeriod': 24
+        }
+      },
+      {
+        name: 'TREND_BY_DI',
+        params: {
+          period: 14
         }
       }
     ],
@@ -77,7 +84,7 @@ config['OMLBCTWithStopTradePaperTrade'] = {
       from: '2019-01-01T00:00:00.000Z',
       to: '2019-04-01T00:00:00.000Z',
     },
-    rolling_step: 11
+    rolling_step: 0
   }
 }
 
@@ -285,7 +292,7 @@ config.ifttt = {
 }
 
 config.candleWriter = {
-  enabled: true
+  enabled: false
 }
 
 config.adviceWriter = {
