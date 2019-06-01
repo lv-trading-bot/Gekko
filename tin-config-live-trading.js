@@ -38,13 +38,49 @@ config.tradingAdvisor = {
 }
 
 config['OMLBCTWithStopTradePaperTrade'] = {
-  stopLoss: -5,
+  stopLoss: -10,
   takeProfit: 2,
-  amountForOneTrade: 12,
+  amountForOneTrade: 100,
   expirationPeriod: 24,
+  decisionThreshold: 0.5,
   stopTradeLimit: -100,
   // totalWatchCandles: 24,
-  breakDuration: -1
+  breakDuration: -1,
+  modelInfo: {
+    model_type: 'rolling',
+    model_name: 'gradient_boosting',
+    lag: 0,
+    features: ['start', 'open', 'high', 'low', 'close', 'trades', 'volume',
+      {
+        name: 'omlbct',
+        params: {
+          'takeProfit': 2,
+          'stopLoss': -10,
+          'expirationPeriod': 24
+        }
+      },
+      {
+        name: "MACD",
+        params: {
+          short: 12,
+          long: 26,
+          signal: 9
+        }
+      },
+      {
+        name: "ADX",
+        params: {
+          period: 14
+        }
+      },
+    ],
+    label: 'omlbct',
+    train_daterange: {
+      from: '2019-03-16T00:00:00.000Z',
+      to: '2019-04-01T00:00:00.000Z',
+    },
+    rolling_step: 11
+  }
 }
 
 // do you want Gekko to simulate the profit of the strategy's own advice?
