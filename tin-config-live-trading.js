@@ -79,6 +79,7 @@ config.trader = {
   enabled: true,
   key: (require('./SECRET-api-keys.js')).key,
   secret: (require('./SECRET-api-keys.js')).secret,
+  customInterval: 500,
   username: '', // your username, only required for specific exchanges.
   passphrase: '', // GDAX, requires a passphrase.
 }
