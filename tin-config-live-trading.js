@@ -84,7 +84,7 @@ config['OMLBCTWithStopTradePaperTrade'] = {
       from: '2019-01-01T00:00:00.000Z',
       to: '2019-04-01T00:00:00.000Z',
     },
-    rolling_step: 72
+    rolling_step: 24*30
   }
 }
 
