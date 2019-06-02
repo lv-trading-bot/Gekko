@@ -433,6 +433,7 @@ config.myBacktestResultExporter = {
       "Changes vs Market": "`${(this.performanceReport.relativeProfit - this.performanceReport.market).toFixed(4)}%`",
       "Max Profit with fee": "''",
       "Max Profit with fee (%)": "''",
+      "Config ID (for backtest)": "`${/[0-9_]+/.exec(backtest.strategyParameters.dataFile) || ''}`",
       "Ghi chú": "`${backtest.strategyParameters.note || ''}`"
     }
    }
