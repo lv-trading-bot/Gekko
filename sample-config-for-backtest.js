@@ -426,8 +426,14 @@ config.myBacktestResultExporter = {
       "PnL_relative": "`${(this.performanceReport.relativeProfit + this.performanceReport.trades*config.paperTrader.feeMaker*100/this.performanceReport.startBalance).toFixed(4)}%`",
       "PnL_withFee": "`${this.performanceReport.profit.toFixed(4)}`",
       "Pnl_withFee_relative": "`${this.performanceReport.relativeProfit.toFixed(4)}%`",
+      "Profitable Trades": "`${(_.filter(this.firedTriggers, (tg)=>{return tg.what=='TAKEPROFIT'})).length}`",
+      "Loss-making Trades": "`${(_.filter(this.firedTriggers, (tg)=>{return tg.what=='STOPLOSS'})).length}`",
+      "Expired Trades": "`${(_.filter(this.firedTriggers, (tg)=>{return tg.what=='EXPIRES'})).length}`",
       "Lowest Balance": "this.performanceReport.lowestBalance.toFixed(4)",
-      "Changes vs Market": "`${(this.performanceReport.relativeProfit - this.performanceReport.market).toFixed(4)}%`"
+      "Changes vs Market": "`${(this.performanceReport.relativeProfit - this.performanceReport.market).toFixed(4)}%`",
+      "Max Profit with fee": "''",
+      "Max Profit with fee (%)": "''",
+      "Ghi chú": "`${backtest.strategyParameters.note || ''}`"
     }
    }
   }
