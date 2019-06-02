@@ -33,7 +33,7 @@ config.watch = {
 config.tradingAdvisor = {
   enabled: true,
   method: 'OMLBCTWithStopTradePaperTrade',
-  candleSize: 1,
+  candleSize: 60,
   historySize: 0,
 }
 
@@ -48,7 +48,7 @@ config['OMLBCTWithStopTradePaperTrade'] = {
   breakDuration: -1,
   modelInfo: {
     model_type: 'rolling',
-    model_name: 'gradient_boosting',
+    model_name: 'random_forest',
     lag: 0,
     features: ['start', 'open', 'high', 'low', 'close', 'trades', 'volume',
       {
@@ -60,26 +60,18 @@ config['OMLBCTWithStopTradePaperTrade'] = {
         }
       },
       {
-        name: "MACD",
-        params: {
-          short: 12,
-          long: 26,
-          signal: 9
-        }
-      },
-      {
-        name: "ADX",
+        name: 'TREND_BY_DI',
         params: {
           period: 14
         }
-      },
+      }
     ],
     label: 'omlbct',
     train_daterange: {
-      from: '2019-03-16T00:00:00.000Z',
+      from: '2019-01-01T00:00:00.000Z',
       to: '2019-04-01T00:00:00.000Z',
     },
-    rolling_step: 11
+    rolling_step: 72
   }
 }
 

@@ -60,7 +60,7 @@ config['OMLBCTWithStopTradePaperTrade'] = {
   // totalWatchCandles: 24,
   breakDuration: -1,
   modelInfo: {
-    model_type: 'fixed',
+    model_type: 'rolling',
     model_name: 'random_forest',
     lag: 23,
     features: ['start', 'open', 'high', 'low', 'close', 'trades', 'volume',
@@ -84,7 +84,7 @@ config['OMLBCTWithStopTradePaperTrade'] = {
       from: '2019-01-01T00:00:00.000Z',
       to: '2019-04-01T00:00:00.000Z',
     },
-    rolling_step: 0
+    rolling_step: 72
   }
 }
 

@@ -133,7 +133,7 @@ method.init = function () {
   this.takeProfit = this.settings.takeProfit;
   this.amountForOneTrade = this.settings.amountForOneTrade;
   this.expirationPeriod = this.settings.expirationPeriod;
-
+  this.decisionThreshold = this.settings.decisionThreshold;
   this.stopTradeLimit = this.settings.stopTradeLimit;
   this.breakDuration = this.settings.breakDuration;
 
@@ -215,7 +215,7 @@ method.check = async function (candle) {
   log.debug('advice', advice);
   log.debug(candle)
 
-  if (advice == 1 && this.isAllowTrade) {
+  if (advice >= this.decisionThreshold && this.isAllowTrade) {
     this.buy(this.amountForOneTrade, candle);
   }
 
