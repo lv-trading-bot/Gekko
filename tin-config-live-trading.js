@@ -37,6 +37,19 @@ config.tradingAdvisor = {
   historySize: 0,
 }
 
+config.production = true;
+config.loggerAdapter = 'file';
+
+config.connectManager = {
+  enabled: true,
+  baseApi: process.env.LIVE_TRADE_MANAGER_BASE_API || "http://localhost:3004",
+  init: "/init",
+  reconnect: "/reconnect",
+  trigger: "/trigger",
+  trade: "/trade",
+  portfolio: "/portfolio"
+}
+
 config['OMLBCTWithStopTradePaperTrade'] = {
   stopLoss: -10,
   takeProfit: 2,
@@ -49,7 +62,7 @@ config['OMLBCTWithStopTradePaperTrade'] = {
   modelInfo: {
     model_type: 'rolling',
     model_name: 'random_forest',
-    lag: 0,
+    lag: 23,
     features: ['start', 'open', 'high', 'low', 'close', 'trades', 'volume',
       {
         name: 'omlbct',
@@ -205,6 +218,9 @@ config.telegrambot = {
   // Receive notifications for trades and warnings/errors related to trading
   emitTrades: true,
   token: '851670778:AAE3MQ0Jz1IqX-yDQhAfHuO43E22_oRYRQ4',
+  defaultSubcribes: [/*721265885,*/ -393431991]
+  // 721265885: Xuân Tin Id
+  // -393431991: Group Trading Id
 };
 
 config.twitter = {
