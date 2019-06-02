@@ -33,8 +33,21 @@ config.watch = {
 config.tradingAdvisor = {
   enabled: true,
   method: 'OMLBCTWithStopTradePaperTrade',
-  candleSize: 1,
+  candleSize: 60,
   historySize: 0,
+}
+
+config.production = true;
+config.loggerAdapter = 'file';
+
+config.connectManager = {
+  enabled: true,
+  baseApi: process.env.LIVE_TRADE_MANAGER_BASE_API || "http://localhost:3004",
+  init: "/init",
+  reconnect: "/reconnect",
+  trigger: "/trigger",
+  trade: "/trade",
+  portfolio: "/portfolio"
 }
 
 config['OMLBCTWithStopTradePaperTrade'] = {
@@ -48,8 +61,8 @@ config['OMLBCTWithStopTradePaperTrade'] = {
   breakDuration: -1,
   modelInfo: {
     model_type: 'rolling',
-    model_name: 'gradient_boosting',
-    lag: 0,
+    model_name: 'random_forest',
+    lag: 23,
     features: ['start', 'open', 'high', 'low', 'close', 'trades', 'volume',
       {
         name: 'omlbct',
@@ -60,26 +73,18 @@ config['OMLBCTWithStopTradePaperTrade'] = {
         }
       },
       {
-        name: "MACD",
-        params: {
-          short: 12,
-          long: 26,
-          signal: 9
-        }
-      },
-      {
-        name: "ADX",
+        name: 'TREND_BY_DI',
         params: {
           period: 14
         }
-      },
+      }
     ],
     label: 'omlbct',
     train_daterange: {
-      from: '2019-03-16T00:00:00.000Z',
+      from: '2019-01-01T00:00:00.000Z',
       to: '2019-04-01T00:00:00.000Z',
     },
-    rolling_step: 11
+    rolling_step: 48
   }
 }
 
@@ -213,6 +218,9 @@ config.telegrambot = {
   // Receive notifications for trades and warnings/errors related to trading
   emitTrades: true,
   token: '851670778:AAE3MQ0Jz1IqX-yDQhAfHuO43E22_oRYRQ4',
+  defaultSubcribes: [/*721265885,*/ -393431991]
+  // 721265885: Xuân Tin Id
+  // -393431991: Group Trading Id
 };
 
 config.twitter = {
