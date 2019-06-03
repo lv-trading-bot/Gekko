@@ -103,7 +103,7 @@ class DoubleStop extends EventEmitter {
             expires: this.expires,
             assetAmount: this.assetAmount,
             exitAt: moment().utc(),
-            exitPrice: candle.close,
+            exitPrice: price,
             exitCandle: {
               start: moment().utc(),
               close: price,
@@ -123,7 +123,7 @@ class DoubleStop extends EventEmitter {
             expires: this.expires,
             assetAmount: this.assetAmount,
             exitAt: moment().utc(),
-            exitPrice: candle.close,
+            exitPrice: price,
             exitCandle: {
               start: moment().utc(),
               close: price,
