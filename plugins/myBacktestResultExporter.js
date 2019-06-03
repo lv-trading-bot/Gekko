@@ -16,6 +16,7 @@ const MyBacktestResultReporter = function() {
   this.stratUpdates = [];
   this.stratCandles = [];
   this.trades = [];
+  this.firedTriggers = [];
   this.dates = {
     start: false,
     end: false
@@ -89,6 +90,10 @@ MyBacktestResultReporter.prototype.processRoundtrip = function(roundtrip) {
     exitAt: roundtrip.exitAt.unix()
   });
 };
+
+MyBacktestResultReporter.prototype.processTriggerFired = function(trigger) {
+  this.firedTriggers.push(trigger);
+}
 
 MyBacktestResultReporter.prototype.processTradeCompleted = function(trade) {
   this.trades.push({

@@ -119,8 +119,10 @@ BacktestResultExporter.prototype.finalize = function(done) {
 };
 
 BacktestResultExporter.prototype.writeToDisk = function(backtest, next) {
-  const now = moment().format('YYYY-MM-DD_HH-mm-ss');
-  const filename = `backtest_${config.tradingAdvisor.method}_${now}.json`;
+  const now = moment().valueOf();
+  const strategyParameters = config[config.tradingAdvisor.method];
+  const configId = /[0-9_]+/.exec(strategyParameters.dataFile) || now;
+  const filename = `${configId}.json`;
   const fileDir = util.dirs().gekko + '/backtestHistory/'
   fs.writeFile(
     fileDir + filename,
