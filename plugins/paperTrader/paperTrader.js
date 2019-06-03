@@ -186,6 +186,9 @@ if (util.gekkoMode() === 'realtime') {
         this.portfolio.currency -= amount;
 
         effectivePrice = price + (price * (1 - this.fee));
+
+        // Đưa amount về asset
+        amount = amount / price;
         // this.exposed = true;
         // this.trades++;
       }
@@ -203,6 +206,10 @@ if (util.gekkoMode() === 'realtime') {
         this.portfolio.asset -= amount;
 
         effectivePrice = price * this.fee;
+
+        // Đưa amountWithFee về asset
+
+        amountWithFee = amountWithFee / price;
         // this.exposed = false;
         // this.trades++;
       }
@@ -397,6 +404,9 @@ if (util.gekkoMode() === 'realtime') {
       this.portfolio.asset += amountWithFee;
       this.portfolio.currency -= amount;
 
+      // Đưa amount về asset
+      amount = amount / price;
+
       // this.exposed = true;
       // this.trades++;
     }
@@ -413,6 +423,8 @@ if (util.gekkoMode() === 'realtime') {
       this.portfolio.currency += amountWithFee;
       this.portfolio.asset -= amount;
 
+      // Đưa amountWithFee về asset
+      amountWithFee = amountWithFee / price;
       // this.exposed = false;
       // this.trades++;
     }
