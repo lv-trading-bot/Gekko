@@ -152,7 +152,8 @@ const strategyForBacktest = [{
       //   }
       // },
     ],
-    label: "omlbct"
+    label: "omlbct",
+    note: "Ghi chú tại đây"
   }
 }];
 
