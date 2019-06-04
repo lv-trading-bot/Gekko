@@ -33,7 +33,7 @@ config.watch = {
 config.tradingAdvisor = {
   enabled: true,
   method: 'OMLBCTWithStopTradePaperTrade',
-  candleSize: 1,
+  candleSize: 60,
   historySize: 0,
 }
 
@@ -285,7 +285,7 @@ config.ifttt = {
 }
 
 config.candleWriter = {
-  enabled: true
+  enabled: false
 }
 
 config.adviceWriter = {
@@ -347,7 +347,7 @@ config.myBacktestResultExporter = {
 //                       CONFIGURING ADAPTER
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-config.adapter = 'sqlite';
+config.adapter = 'mongodb';
 
 config.sqlite = {
   path: 'plugins/sqlite',
@@ -377,7 +377,7 @@ config.postgresql = {
 config.mongodb = {
   path: 'plugins/mongodb',
   version: 0.1,
-  connectionString: 'mongodb://localhost/gekko', // connection to mongodb server
+  connectionString: 'mongodb://localhost:27017/db_candles_of_cryptocurrency', // connection to mongodb server
   dependencies: [{
     module: 'mongojs',
     version: '2.4.0'

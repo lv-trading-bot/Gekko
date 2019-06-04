@@ -9,7 +9,6 @@ var Reader = function Reader () {
   _.bindAll(this);
   this.db = handle;
   this.collection = this.db.collection(mongoUtil.settings.historyCollection);
-  this.pair = mongoUtil.settings.pair.join('_');
 }
 
 // returns the furtherst point (up to `from`) in time we have valid data from
@@ -17,18 +16,27 @@ Reader.prototype.mostRecentWindow = function mostRecentWindow (from, to, next) {
   var mFrom = from.unix();
   var mTo = to.unix();
 
-  var maxAmount = mTo - mFrom + 1;
+  var maxAmount = (mTo - mFrom) / 60 + 1;
 
   // Find some documents
-  this.collection.find({ pair: this.pair, start: { $gte: mFrom, $lte: mTo } }).sort({ start: -1 }, (err, docs) => {
+  this.collection.find({ start: { $gte: mFrom*1000, $lte: mTo*1000 } }).sort({ start: -1 }, (err, docs) => {
     if (err) {
       return util.die('DB error at `mostRecentWindow`');
     }
+
     // no candles are available
     if (docs.length === 0) {
       log.debug('no candles are available');
       return next(false);
     }
+
+    // transform candle.start back to unix
+    docs = _.map(docs, function (doc) {
+      return {
+        ...doc,
+        start: doc.start / 1000
+      }
+    })
 
     if (docs.length === maxAmount) {
       // full history is available!
@@ -65,16 +73,26 @@ Reader.prototype.mostRecentWindow = function mostRecentWindow (from, to, next) {
 
 Reader.prototype.get = function get (from, to, what, next) { // returns all fields in general
   // Find some documents
-  this.collection.find({ pair: this.pair, start: { $gte: from, $lte: to } }).sort({ start: 1 }, (err, docs) => {
+  this.collection.find({ start: { $gte: from*1000, $lte: to*1000 } }).sort({ start: 1 }, (err, docs) => {
     if (err) {
+      console.log(err);
       return util.die('DB error at `get`');
     }
+
+    // transform candle.start back to unix
+    docs = _.map(docs, function (doc) {
+      return {
+        ...doc,
+        start: doc.start / 1000, 
+      }
+    })
+
     return next(null, docs);
   });
 }
 
 Reader.prototype.count = function fCount (from, to, next) {
-  this.collection.count({ pair: this.pair, start: { $gte: from, $lte: to } }, (err, count) => {
+  this.collection.count({ start: { $gte: from*1000, $lte: to*1000 } }, (err, count) => {
     if (err) {
       return util.die('DB error at `count`');
     }
@@ -83,7 +101,7 @@ Reader.prototype.count = function fCount (from, to, next) {
 }
 
 Reader.prototype.countTotal = function countTotal (next) {
-  this.collection.count({ pair: this.pair }, (err, count) => {
+  this.collection.count({}, (err, count) => {
     if (err) {
       return util.die('DB error at `countTotal`');
     }
@@ -92,18 +110,20 @@ Reader.prototype.countTotal = function countTotal (next) {
 }
 
 Reader.prototype.getBoundry = function getBoundry (next) {
-  this.collection.find({ pair: this.pair }, { start: 1 }).sort({ start: 1 }).limit(1, (err, docs) => {
+  this.collection.find().sort({ start: 1 }).limit(1, (err, docs) => {
     if (err) {
       return util.die('DB error at `getBoundry`');
     }
+
     var start = _.first(docs).start;
 
-    this.collection.find({ pair: this.pair }, { start: 1 }).sort({ start: -1 }).limit(1, (err2, docs2) => {
+    this.collection.find().sort({ start: -1 }).limit(1, (err2, docs2) => {
       if (err2) {
         return util.die('DB error at `getBoundry`');
       }
       var end = _.first(docs2).start;
-      return next(null, { first: start, last: end });
+      // transform to unix value
+      return next(null, { first: start/1000, last: end/1000 });
     });
     return null;
   });

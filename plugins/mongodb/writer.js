@@ -26,6 +26,8 @@ var Store = function Store (done) {
 }
 
 Store.prototype.writeCandles = function writeCandles () {
+  log.warn("GEKKO SHOULD NOT WRITE TO DB ITSELF");
+  util.die('Please disable candleWriter or adviceWriter')
   if (_.isEmpty(this.candleCache)) { // nothing to do
     return;
   }
@@ -90,11 +92,15 @@ var processAdvice = function processAdvice (advice) {
 
 if (config.adviceWriter.enabled) {
   log.debug('Enabling adviceWriter.');
+  log.warn("GEKKO SHOULD NOT WRITE TO DB ITSELF");
+  util.die('Please disable adviceWriter')
   Store.prototype.processAdvice = processAdvice;
 }
 
 if (config.candleWriter.enabled) {
   log.debug('Enabling candleWriter.');
+  log.warn("GEKKO SHOULD NOT WRITE TO DB ITSELF");
+  util.die('Please disable candleWriter')
   Store.prototype.processCandle = processCandle;
   Store.prototype.finalize = finalize;
 }
