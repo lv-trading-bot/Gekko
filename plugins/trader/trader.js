@@ -51,7 +51,7 @@ const Trader = function (next) {
     next();
   });
 
-  this.cancellingOrder = false;
+  // this.cancellingOrder = false;
   this.sendInitialPortfolio = false;
 
   setInterval(this.sync, 1000 * 60 * 10);
@@ -408,17 +408,30 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
   // Check Valid balance
   const checkBalance = checkValidBalance(this.portfolio, this.price, side, amount);
   if (!checkBalance.valid) {
-    log.warn('NOT creating order! Reason:', checkBalance.reason);
-    return this.deferredEmit('tradeAborted', {
-      id,
-      adviceId: advice.id,
-      action: side,
-      portfolio: this.portfolio,
-      balance: this.balance,
-      reason: checkBalance.reason
-    });
+    // Kiểm tra order bán mà thiếu thì chỉnh lại
+    if (side === 'sell' && amount > this.portfolio.asset) {
+      amount = this.portfolio.asset;
+    // Lỗi balance
+    } else {
+      log.warn('NOT creating order! Reason:', checkBalance.reason);
+      return this.deferredEmit('tradeAborted', {
+        id,
+        adviceId: advice.id,
+        action: side,
+        portfolio: this.portfolio,
+        balance: this.balance,
+        reason: checkBalance.reason
+      });
+    }
   }
 
+  // Nếu đang có order thì chở 5s rồi kiểm tra lại
+  if(this.orders.length > 0) {
+    setTimeout(() => {
+      this.createOrder(side, amount, advice, id);
+    }, 5000)
+    return;
+  }
   let order = this.broker.createOrder(type, side, amount);
   this.orders.push(order);
 
@@ -440,7 +453,7 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
     log.debug(e);
     // order = null;
     _.remove(this.orders, ord => ord.id === order.id);
-    this.cancellingOrder = false;
+    // this.cancellingOrder = false;
 
     this.deferredEmit('tradeErrored', {
       id,
@@ -448,6 +461,13 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
       date: moment(),
       reason: e.message
     });
+
+    // Retry
+    if (side === 'sell') {
+      setTimeout(() => {
+        this.createOrder(side, amount, advice, id);
+      }, 5000);
+    }
 
   });
   order.on('completed', () => {

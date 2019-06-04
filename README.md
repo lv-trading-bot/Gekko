@@ -7,6 +7,10 @@
 ## Các biến môi trường cần cung cấp trước khi chạy
 - `LIVE_TRADE_MANAGER_BASE_API`: Địa chỉ của live manager
 
+## Nếu chạy gekko thôn qua file `` thì bổ xung thêm biến môi trường
+- MODE: `realtime` || `backtest`
+- CONFIG_NAME: tên của config file
+
 ## Chạy paper trading
 - Sửa file `tin-config-paper-trading.js`
     - Sửa candle size
