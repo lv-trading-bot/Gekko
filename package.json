@@ -33,6 +33,7 @@
     "lodash": "^2.4.2",
     "lodash.get": "^4.4.2",
     "moment": "^2.20.1",
+    "mongojs": "^2.6.0",
     "node-telegram-bot-api": "^0.24.0",
     "nodemon": "^1.18.10",
     "opn": "^4.0.2",
