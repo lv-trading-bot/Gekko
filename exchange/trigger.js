@@ -27,7 +27,7 @@ class Trigger {
       throw new Error('Gekko Broker does not know trigger ' + type);
     }
 
-    this.CHECK_INTERVAL = this.api.interval * 10;
+    this.CHECK_INTERVAL = this.api.interval * 5;
 
     bindAll(this);
     this.trigger = new triggers[type]({
