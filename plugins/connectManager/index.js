@@ -32,20 +32,21 @@ const loadId = () => {
 
 const connectSocket = (id, asset, currency) => {
   // Connect socket
+  let contanerName = process.env.E_IGNITER;
   socket.connect(baseApi, {
     name: "Gekko", 
     id,
     asset,
-    currency
+    currency,
+    contanerName
   }, id)
 }
 
 var Actor = function () {
   this.price = false;
   let localId = loadId();
-  let contanerName = process.env.E_IGNITER;
   this.isNew = !localId;
-  axios.post(initApi, { config, asset: watch.asset, currency: watch.currency, id: localId, contanerName })
+  axios.post(initApi, { config, asset: watch.asset, currency: watch.currency, id: localId })
     .then(res => {
       this.id = localId ? localId : res.data.id;
       saveId(this.id);
