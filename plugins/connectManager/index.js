@@ -43,8 +43,9 @@ const connectSocket = (id, asset, currency) => {
 var Actor = function () {
   this.price = false;
   let localId = loadId();
+  let contanerName = process.env.E_IGNITER;
   this.isNew = !localId;
-  axios.post(initApi, { config, asset: watch.asset, currency: watch.currency, id: localId })
+  axios.post(initApi, { config, asset: watch.asset, currency: watch.currency, id: localId, contanerName })
     .then(res => {
       this.id = localId ? localId : res.data.id;
       saveId(this.id);
