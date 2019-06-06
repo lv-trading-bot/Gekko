@@ -148,9 +148,6 @@ MyBacktestResultReporter.prototype.writeToDisk = function(backtest, next) {
   this.backtest = backtest;
   let filename = [
     config.myBacktestResultExporter.fileNamePrefix,
-    this.backtest.market.exchange,
-    this.backtest.market.asset,
-    this.backtest.market.currency,
     this.candleSize
   ].join('-')
   filename = `${filename}.csv`;

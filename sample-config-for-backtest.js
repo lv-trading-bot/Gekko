@@ -385,7 +385,7 @@ config.myBacktestResultExporter = {
     roundtrips: true,
     trades: true
   },
-  fileNamePrefix: "Export-",
+  fileNamePrefix: "Exported-result",
   dataOut: {
    info: {
     "backtest.market.exchange": "Exchange",
@@ -409,6 +409,9 @@ config.myBacktestResultExporter = {
       // "Sell": `_.filter(this.trades, trade => trade.action == "sell").length`,
       // "Market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
       // "Profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
+      "exchange": "`${this.backtest.market.exchange}`",
+      "asset": "`${this.backtest.market.exchange}`",
+      "currency": "`${this.backtest.market.exchange}`",
       "model_name": "`${config.miscellaneous.modelName}`",
       "model_type": "`${config.miscellaneous.modelType}`",
       "rolling_step": "`${config.miscellaneous.rollingStep}`",

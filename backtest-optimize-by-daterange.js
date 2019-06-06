@@ -176,7 +176,7 @@ const strategyGetData = {
 const nameConfig = "config-backtest.js";
 const nameSampleConfig = "sample-config-for-backtest.js";
 
-const api = "http://localhost:5000/backtest";
+const api = "http://localhost:3002/backtest";
 
 const main = async () => {
   let sampleConfig = require('./' + nameSampleConfig);
