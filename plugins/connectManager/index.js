@@ -36,13 +36,13 @@ const loadId = () => {
 
 const connectSocket = (id, asset, currency) => {
   // Connect socket
-  let contanerName = process.env.E_IGNITER;
+  let containerName = process.env.E_IGNITER;
   socket.connect(baseApi, {
     name: "Gekko", 
     id,
     asset,
     currency,
-    contanerName
+    containerName
   }, id)
 }
 
