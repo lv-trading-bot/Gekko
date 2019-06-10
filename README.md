@@ -8,7 +8,7 @@
 - `LIVE_TRADE_MANAGER_BASE_API`: Địa chỉ của live manager
 - `AUTHENTICAION_TOKEN`: Token để gọi api
 
-## Nếu chạy gekko thôn qua file `` thì bổ xung thêm biến môi trường
+## Nếu chạy gekko thông qua file `runGekkoWithConfigFromENV.js` thì bổ sung thêm biến môi trường
 - MODE: `realtime` || `backtest`
 - CONFIG_NAME: tên của config file
 
