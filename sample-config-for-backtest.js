@@ -385,7 +385,7 @@ config.myBacktestResultExporter = {
     roundtrips: true,
     trades: true
   },
-  fileNamePrefix: "Export-",
+  fileNamePrefix: "Exported-result",
   dataOut: {
    info: {
     "backtest.market.exchange": "Exchange",
@@ -409,6 +409,9 @@ config.myBacktestResultExporter = {
       // "Sell": `_.filter(this.trades, trade => trade.action == "sell").length`,
       // "Market": "`${((this.endPrice - this.performanceReport.startPrice)/this.performanceReport.startPrice)*100}%`",
       // "Profit": "`${((this.performanceReport.balance - this.performanceReport.startBalance)/this.performanceReport.startBalance)*100}%`",
+      "exchange": "`${this.backtest.market.exchange}`",
+      "asset": "`${this.backtest.market.asset}`",
+      "currency": "`${this.backtest.market.currency}`",
       "model_name": "`${config.miscellaneous.modelName}`",
       "model_type": "`${config.miscellaneous.modelType}`",
       "rolling_step": "`${config.miscellaneous.rollingStep}`",
@@ -431,6 +434,7 @@ config.myBacktestResultExporter = {
       "Expired Trades": "`${(_.filter(this.firedTriggers, (tg)=>{return tg.what=='EXPIRES'})).length}`",
       "Lowest Balance": "this.performanceReport.lowestBalance.toFixed(4)",
       "Changes vs Market": "`${(this.performanceReport.relativeProfit - this.performanceReport.market).toFixed(4)}%`",
+      "Profitable Trades %": "(_.filter(this.firedTriggers, (tg)=>{return tg.what=='TAKEPROFIT'})).length/this.firedTriggers.length",
       "Max Profit with fee": "''",
       "Max Profit with fee (%)": "''",
       "Config ID (for backtest)": "`${/[0-9_]+/.exec(backtest.strategyParameters.dataFile) || ''}`",

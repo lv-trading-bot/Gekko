@@ -11,7 +11,7 @@ watch = {
 var settings = {
   exchange: watch.exchange,
   pair: [watch.currency, watch.asset],
-  historyCollection: `${watch.exchange}${watch.asset}${watch.currency}`,
+  historyCollection: `${watch.exchange}_${watch.asset}_${watch.currency}`,
   // adviceCollection: `${exchangeLowerCase}_advices`
 };
 

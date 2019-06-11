@@ -51,4 +51,4 @@ private-*.toml
 SECRET-api-keys.js
 exchange/nusadua
 
-Export--*.csv
+Export*.csv
