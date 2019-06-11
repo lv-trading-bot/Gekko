@@ -11,9 +11,9 @@ const ML_base_api = process.env.LIVE_TRADE_MANAGER_BASE_API;
 const api = ML_base_api ? `${ML_base_api}/advice` : "http://localhost:3004/advice";
 const apiStopLoss = ML_base_api ? `${ML_base_api}/pair-control` : "http://localhost:3004/pair-control";
 
-let AUTHENTICAION_TOKEN = process.env.AUTHENTICAION_TOKEN;
+let AUTHENTICATION_TOKEN = process.env.AUTHENTICATION_TOKEN;
 
-axios.defaults.headers.common['Authorization'] = AUTHENTICAION_TOKEN;
+axios.defaults.headers.common['Authorization'] = AUTHENTICATION_TOKEN;
 
 // let's create our own method
 var method = {};

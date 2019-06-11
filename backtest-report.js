@@ -6,9 +6,9 @@ const {
 const moment = require('moment');
 const axios = require('axios');
 
-let AUTHENTICAION_TOKEN = process.env.AUTHENTICAION_TOKEN;
+let AUTHENTICATION_TOKEN = process.env.AUTHENTICATION_TOKEN;
 
-axios.defaults.headers.common['Authorization'] = AUTHENTICAION_TOKEN;
+axios.defaults.headers.common['Authorization'] = AUTHENTICATION_TOKEN;
 
 const marketsAndPair = [{
     exchange: "binance",
