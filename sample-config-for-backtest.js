@@ -434,6 +434,7 @@ config.myBacktestResultExporter = {
       "Expired Trades": "`${(_.filter(this.firedTriggers, (tg)=>{return tg.what=='EXPIRES'})).length}`",
       "Lowest Balance": "this.performanceReport.lowestBalance.toFixed(4)",
       "Changes vs Market": "`${(this.performanceReport.relativeProfit - this.performanceReport.market).toFixed(4)}%`",
+      "Profitable Trades %": "(_.filter(this.firedTriggers, (tg)=>{return tg.what=='TAKEPROFIT'})).length/this.firedTriggers.length",
       "Max Profit with fee": "''",
       "Max Profit with fee (%)": "''",
       "Config ID (for backtest)": "`${/[0-9_]+/.exec(backtest.strategyParameters.dataFile) || ''}`",
