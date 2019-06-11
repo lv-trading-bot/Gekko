@@ -10,9 +10,9 @@ let baseApi = connectManagerConfig.baseApi;
 let axios = require('axios');
 let socket = require('./socket');
 
-let AUTHENTICAION_TOKEN = process.env.AUTHENTICAION_TOKEN;
+let AUTHENTICATION_TOKEN = process.env.AUTHENTICATION_TOKEN;
 
-axios.defaults.headers.common['Authorization'] = AUTHENTICAION_TOKEN;
+axios.defaults.headers.common['Authorization'] = AUTHENTICATION_TOKEN;
 
 let initApi = baseApi + connectManagerConfig.init,
   reconnectApi = baseApi + connectManagerConfig.reconnect,
