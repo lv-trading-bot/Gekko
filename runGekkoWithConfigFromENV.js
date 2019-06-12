@@ -5,6 +5,7 @@ const mode = process.env.MODE;
 
 if(!configName) {
     console.log('Canot get CONFIG_NAME from ENV');
+    return;
 }
 
 console.log(`Run gekko with config ${configName}`)
@@ -14,7 +15,7 @@ let instance = null;
 if(mode === 'realtime') {
     instance = spawn('node', ['gekko', '-c', configName]);
 } else {
-    instance = spawn('node', ['gekko', '-b', '-c', configName]);
+    instance = spawn('node', ['auto-backtest.js', configName]);
 }
 
 // Ở đây không được dùng log vì ở trong gekko đã lưu log vào file r, ở đây lại dùng log thì bị duplicate

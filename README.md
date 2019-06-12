@@ -8,9 +8,13 @@
 - `LIVE_TRADE_MANAGER_BASE_API`: Địa chỉ của live manager
 - `AUTHENTICATION_TOKEN`: Token để gọi api
 
+# Đối với chạy backtest
+- `ML_BASE_API`: Địa chỉ của ML Server
+
 ## Nếu chạy gekko thông qua file `runGekkoWithConfigFromENV.js` thì bổ sung thêm biến môi trường
 - MODE: `realtime` || `backtest`
 - CONFIG_NAME: tên của config file
+- FILE_NAME_RESULT: Tên của file kết quả
 
 ## Chạy paper trading
 - Sửa file `tin-config-paper-trading.js`

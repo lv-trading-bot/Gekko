@@ -375,6 +375,18 @@ config.backtestResultExporter = {
   }
 }
 
+config.backtestResultExporterForAutoBacktest = {
+  enabled: false,
+  writeToDisk: true,
+  data: {
+    stratUpdates: false,
+    portfolioValues: true,
+    stratCandles: false,
+    roundtrips: false,
+    trades: false
+  }
+}
+
 config.myBacktestResultExporter = {
   enabled: false,
   writeToDisk: true,
@@ -478,7 +490,7 @@ config.postgresql = {
 config.mongodb = {
   path: 'plugins/mongodb',
   version: 0.1,
-  connectionString: 'mongodb://localhost:27017/db_candles_of_cryptocurrency', // connection to mongodb server
+  connectionString: 'mongodb://mongodb:27017/db_candles_of_cryptocurrency', // connection to mongodb server
   dependencies: [{
     module: 'mongojs',
     version: '2.4.0'

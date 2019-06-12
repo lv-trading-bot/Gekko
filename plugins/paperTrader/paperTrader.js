@@ -39,7 +39,10 @@ const PaperTrader = function () {
 
     this.portfolio = util.getCurrenPortfolio(nameFileSavePortfolio);
   } catch (err) {
-    log.info('cannot get portfolio', err);
+    if(err.message) {
+      log.info('cannot get portfolio', err);
+    }
+
     this.portfolio = {
       asset: calcConfig.simulationBalance.asset,
       currency: calcConfig.simulationBalance.currency,
@@ -95,7 +98,9 @@ PaperTrader.prototype.loadTriggers = function () {
       }, 1000)
     }
   } catch (error) {
-    log.info('cannot load trigger', error);
+    if(error.message) {
+      log.info('cannot load trigger', error);
+    }
   }
 }
 
