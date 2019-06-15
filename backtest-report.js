@@ -280,6 +280,7 @@ const main = async () => {
           console.log('Connect to ML server done...')
           
           if (result) {
+            let meanAccuracy = result['mean_accuracy'];
             //Create an unique ID for predicted data file and config file
             randomNumber = Math.floor((Math.random() * 10000000) + 1)
             id = `${moment().valueOf()}_${randomNumber}`
@@ -290,7 +291,7 @@ const main = async () => {
             fs.writeFileSync(strategyForBacktest[l].settings.dataFile, JSON.stringify(result));
 
             console.log("Generate config for backtest...");
-            generateConfigBacktest(config, marketsAndPair[k], dateRanges[j], candleSizes[i],  strategyForBacktest[l]);
+            generateConfigBacktest(config, marketsAndPair[k], dateRanges[j], candleSizes[i],  strategyForBacktest[l], meanAccuracy);
 
             // Ghi file config để backtest
             console.log("Write config file for backtest...");
@@ -344,7 +345,7 @@ const getAdvicesFromMLServer = (marketInfo, trainDaterange, backtestDaterange, c
   })
 }
 
-const generateConfigBacktest = (config, marketInfo, daterange, candleSize, strategy) => {
+const generateConfigBacktest = (config, marketInfo, daterange, candleSize, strategy, meanAccuracy) => {
   config['watch'] = marketInfo;
   
   config['dateRange'] = daterange;
@@ -361,6 +362,7 @@ const generateConfigBacktest = (config, marketInfo, daterange, candleSize, strat
     modelType: modelType,
     rollingStep: rollingStep,
     lag: modelLag,
+    meanAccuracy
   }
 }
 

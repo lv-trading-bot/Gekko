@@ -441,6 +441,7 @@ config.myBacktestResultExporter = {
       "PnL_relative": "`${(this.performanceReport.relativeProfit + this.performanceReport.trades*config.paperTrader.feeMaker*100/this.performanceReport.startBalance).toFixed(4)}%`",
       "PnL_withFee": "`${this.performanceReport.profit.toFixed(4)}`",
       "Pnl_withFee_relative": "`${this.performanceReport.relativeProfit.toFixed(4)}%`",
+      "Mean Accuracy": "`${config.miscellaneous.meanAccuracy}`",
       "Profitable Trades": "`${(_.filter(this.firedTriggers, (tg)=>{return tg.what=='TAKEPROFIT'})).length}`",
       "Loss-making Trades": "`${(_.filter(this.firedTriggers, (tg)=>{return tg.what=='STOPLOSS'})).length}`",
       "Expired Trades": "`${(_.filter(this.firedTriggers, (tg)=>{return tg.what=='EXPIRES'})).length}`",
@@ -490,7 +491,7 @@ config.postgresql = {
 config.mongodb = {
   path: 'plugins/mongodb',
   version: 0.1,
-  connectionString: 'mongodb://mongodb:27017/db_candles_of_cryptocurrency', // connection to mongodb server
+  connectionString: 'mongodb://localhost:27017/db_candles_of_cryptocurrency', // connection to mongodb server
   dependencies: [{
     module: 'mongojs',
     version: '2.4.0'
