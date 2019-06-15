@@ -15,6 +15,8 @@
 - MODE: `realtime` || `backtest`
 - CONFIG_NAME: tên của config file
 - FILE_NAME_RESULT: Tên của file kết quả
+- MONGO_INITDB_ROOT_USERNAME
+- MONGO_INITDB_ROOT_PASSWORD
 
 ## Chạy paper trading
 - Sửa file `tin-config-paper-trading.js`
