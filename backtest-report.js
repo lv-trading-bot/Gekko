@@ -118,54 +118,54 @@ const candleSizes = [30, 60] // Đơn vị phút
 // const candleSizes = [60]
 //NOTE: MUST INCLUDE TIMEZONE, gekko uses UTC inside
 const dateRanges = [
-  // //theo tác giả
-  // {
-  //   trainDaterange: {
-  //     from: "2018-02-11T21:00:00.000Z",
-  //     to: "2018-03-30T18:00:00.000Z"
-  //   },
-  //   backtestDaterange: {
-  //     from: "2018-04-15T09:00:00.000Z",
-  //     to: "2018-05-01T00:00:00.000Z"
-  //   }
-  // },
-  // //tăng mạnh
-  // {
-  //   trainDaterange: {
-  //     from: "2017-11-04T12:00:00.000Z",
-  //     to: "2018-02-05T00:00:00.000Z"
-  //   },
-  //   backtestDaterange: {
-  //     from: "2018-02-05T00:00:00.000Z",
-  //     to: "2018-03-05T00:00:00.000Z"
-  //   }
-  // },
-  // //giảm mạnh
-  // {
-  //   trainDaterange: {
-  //     from: "2018-01-05T00:00:00.000Z",
-  //     to: "2018-03-05T00:00:00.000Z"
-  //   },
-  //   backtestDaterange: {
-  //     from: "2018-03-05T00:00:00.000Z",
-  //     to: "2018-04-05T00:00:00.000Z"
-  //   }
-  // },
-  // //tăng nhẹ
-  // {
-  //   trainDaterange: {
-  //     from: "2018-10-24T00:00:00.000Z",
-  //     to: "2019-01-21T00:00:00.000Z"
-  //   },
-  //   backtestDaterange: {
-  //     from: "2019-01-21T00:00:00.000Z",
-  //     to: "2019-02-21T00:00:00.000Z"
-  //   }
-  // },
+  /* //theo tác giả
+  {
+    trainDaterange: {
+      from: "2018-02-11T21:00:00.000Z",
+      to: "2018-03-30T18:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2018-04-15T09:00:00.000Z",
+      to: "2018-05-01T00:00:00.000Z"
+    }
+  },
+  //tăng mạnh
+  {
+    trainDaterange: {
+      from: "2017-11-06T00:00:00.000Z",
+      to: "2018-02-05T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2018-02-05T00:00:00.000Z",
+      to: "2018-03-05T00:00:00.000Z"
+    }
+  },
+  //giảm mạnh
+  {
+    trainDaterange: {
+      from: "2017-12-04T00:00:00.000Z",
+      to: "2018-03-05T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2018-03-05T00:00:00.000Z",
+      to: "2018-04-05T00:00:00.000Z"
+    }
+  }, */
+  //tăng nhẹ
+  {
+    trainDaterange: {
+      from: "2018-10-22T00:00:00.000Z",
+      to: "2019-01-21T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2019-01-21T00:00:00.000Z",
+      to: "2019-02-21T00:00:00.000Z"
+    }
+  },
   //giảm nhẹ
   {
     trainDaterange: {
-      from: "2018-08-11T00:00:00.000Z",
+      from: "2018-06-02T00:00:00.000Z",
       to: "2018-09-01T00:00:00.000Z"
     },
     backtestDaterange: {
@@ -173,17 +173,17 @@ const dateRanges = [
       to: "2018-10-01T00:00:00.000Z"
     }
   },
-  // //gần đây
-  // {
-  //   trainDaterange: {
-  //     from: "2018-12-01T00:00:00.000Z",
-  //     to: "2019-03-01T00:00:00.000Z"
-  //   },
-  //   backtestDaterange: {
-  //     from: "2019-03-01T00:00:00.000Z",
-  //     to: "2019-04-15T00:00:00.000Z"
-  //   }
-  // },
+  /* //gần đây
+  {
+    trainDaterange: {
+      from: "2018-12-01T00:00:00.000Z",
+      to: "2019-03-01T00:00:00.000Z"
+    },
+    backtestDaterange: {
+      from: "2019-03-01T00:00:00.000Z",
+      to: "2019-04-15T00:00:00.000Z"
+    }
+  }, */
 ]
 
 const strategyForBacktest = [{
@@ -207,44 +207,44 @@ const strategyForBacktest = [{
           expirationPeriod: 24
         }
       },
-      // {
-      //   name: "MACD",
-      //   params: {
-      //     short: 12,
-      //     long: 26,
-      //     signal: 9
-      //   }
-      // },
-      // {
-      //   name: "RSI",
-      //   params: {
-      //     interval: 14
-      //   }
-      // },
-      // {
-      //   name: "ADX",
-      //   params: {
-      //     period: 14
-      //   }
-      // },
-      // {
-      //   name: "TREND_BY_DI",
-      //   params: {
-      //     period: 14
-      //   }
-      // },
-      // {
-      //   name: "PLUS_DI",
-      //   params: {
-      //     period: 14
-      //   }
-      // },
-      // {
-      //   name: "MINUS_DI",
-      //   params: {
-      //     period: 14
-      //   }
-      // },
+      /* {
+        name: "MACD",
+        params: {
+          short: 12,
+          long: 26,
+          signal: 9
+        }
+      },
+      {
+        name: "RSI",
+        params: {
+          interval: 14
+        }
+      },
+      {
+        name: "ADX",
+        params: {
+          period: 14
+        }
+      },
+      {
+        name: "TREND_BY_DI",
+        params: {
+          period: 14
+        }
+      },
+      {
+        name: "PLUS_DI",
+        params: {
+          period: 14
+        }
+      },
+      {
+        name: "MINUS_DI",
+        params: {
+          period: 14
+        }
+      }, */
     ],
     label: "omlbct",
     note: "Ghi chú tại đây"
