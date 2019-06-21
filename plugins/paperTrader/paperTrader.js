@@ -223,7 +223,8 @@ if (util.gekkoMode() === 'realtime') {
         cost,
         amount,
         effectivePrice,
-        amountWithFee
+        amountWithFee,
+        price
       });
     })
   }
@@ -286,7 +287,8 @@ if (util.gekkoMode() === 'realtime') {
       cost,
       amount,
       effectivePrice,
-      amountWithFee
+      amountWithFee,
+      price
     } = await this.updatePosition(advice.recommendation, advice.amount);
 
     this.relayPortfolioChange();
@@ -298,7 +300,7 @@ if (util.gekkoMode() === 'realtime') {
       action,
       cost,
       amount,
-      price: _.cloneDeep(this.price),
+      price,
       portfolio: _.cloneDeep(this.portfolio),
       balance: this.getBalance(),
       date: advice.date,
@@ -321,7 +323,8 @@ if (util.gekkoMode() === 'realtime') {
       cost,
       amount,
       effectivePrice,
-      amountWithFee
+      amountWithFee,
+      price
     } = await this.updatePosition('short');
 
     this.relayPortfolioChange();
@@ -333,7 +336,7 @@ if (util.gekkoMode() === 'realtime') {
       action: 'sell',
       cost,
       amount,
-      price: this.price,
+      price,
       portfolio: this.portfolio,
       balance: this.getBalance(),
       date,
@@ -354,7 +357,8 @@ if (util.gekkoMode() === 'realtime') {
       cost,
       amount,
       effectivePrice,
-      amountWithFee
+      amountWithFee,
+      price
     } = await this.updatePosition('short', assetAmount);
 
     this.relayPortfolioChange();
@@ -372,7 +376,7 @@ if (util.gekkoMode() === 'realtime') {
       action: 'sell',
       cost,
       amount,
-      price: _.cloneDeep(this.price),
+      price,
       portfolio: _.cloneDeep(this.portfolio),
       balance: this.getBalance(),
       date,
@@ -440,7 +444,8 @@ if (util.gekkoMode() === 'realtime') {
       cost,
       amount,
       effectivePrice,
-      amountWithFee
+      amountWithFee,
+      price
     };
   }
 
@@ -502,7 +507,8 @@ if (util.gekkoMode() === 'realtime') {
       cost,
       amount,
       effectivePrice,
-      amountWithFee
+      amountWithFee,
+      price
     } = this.updatePosition(advice.recommendation, advice.amount);
 
     this.relayPortfolioChange();
@@ -514,7 +520,7 @@ if (util.gekkoMode() === 'realtime') {
       action,
       cost,
       amount,
-      price: _.cloneDeep(this.price),
+      price,
       portfolio: _.cloneDeep(this.portfolio),
       balance: this.getBalance(),
       date: advice.date,
@@ -537,7 +543,8 @@ if (util.gekkoMode() === 'realtime') {
       cost,
       amount,
       effectivePrice,
-      amountWithFee
+      amountWithFee,
+      price
     } = this.updatePosition('short');
 
     this.relayPortfolioChange();
@@ -549,7 +556,7 @@ if (util.gekkoMode() === 'realtime') {
       action: 'sell',
       cost,
       amount,
-      price: this.price,
+      price: price,
       portfolio: this.portfolio,
       balance: this.getBalance(),
       date,
@@ -570,7 +577,8 @@ if (util.gekkoMode() === 'realtime') {
       cost,
       amount,
       effectivePrice,
-      amountWithFee
+      amountWithFee,
+      price
     } = this.updatePosition('short', assetAmount);
 
     this.relayPortfolioChange();
@@ -588,7 +596,7 @@ if (util.gekkoMode() === 'realtime') {
       action: 'sell',
       cost,
       amount,
-      price: _.cloneDeep(this.price),
+      price,
       portfolio: _.cloneDeep(this.portfolio),
       balance: this.getBalance(),
       date,
