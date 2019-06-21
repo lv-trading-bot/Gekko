@@ -496,6 +496,10 @@ config.mongodb = {
     version: '2.4.0'
   }]
 }
+// Trường hợp kết nối với db có auth
+if(process.env.MONGO_INITDB_ROOT_USERNAME) {
+  config.mongodb.connectionString = `mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/db_candles_of_cryptocurrency?authSource=admin`
+}
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                       CONFIGURING BACKTESTING
