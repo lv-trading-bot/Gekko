@@ -46,6 +46,8 @@ const modelName = userConfig.modelName;
 const modelType = userConfig.modelType;
 const rollingStep = userConfig.rollingStep;
 const modelLag = userConfig.modelLag;
+const asset = userConfig.asset;
+const currency = userConfig.currency;
 const fileNameResult = userConfig.fileNameResult;
 
 const nameSampleConfig = "sample-config-for-backtest.js";
@@ -141,6 +143,10 @@ const generateConfigBacktest = (config, marketInfo, daterange, candleSize, strat
   
   config["tradingAdvisor"].method = strategy.name;
   config["tradingAdvisor"].candleSize = candleSize;
+  config["paperTrader"].simulationBalance = {
+    asset,
+    currency
+  }
 
   config[strategy.name] = strategy.settings;
   
