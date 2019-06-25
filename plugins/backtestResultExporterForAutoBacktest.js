@@ -12,6 +12,7 @@ const fs = require('fs');
 const BacktestResultExporterForAutoBacktest = function() {
   this.performanceReport;
   this.roundtrips = [];
+  this.stratCandles = [];
 
   _.bindAll(this);
 }
@@ -30,7 +31,8 @@ BacktestResultExporterForAutoBacktest.prototype.finalize = function(done) {
     tradingAdvisor: config.tradingAdvisor,
     strategyParameters: config[config.tradingAdvisor.method],
     performanceReport: this.performanceReport,
-    roundtrips: this.roundtrips
+    roundtrips: this.roundtrips,
+    candles: this.stratCandles
   };
 
   if(env === 'child-process') {
@@ -60,6 +62,10 @@ BacktestResultExporterForAutoBacktest.prototype.writeToDisk = function(backtest,
       next();
     }
   );
+}
+
+BacktestResultExporterForAutoBacktest.prototype.processStratCandle = function(stratCandle) {
+    this.stratCandles.push(stratCandle);
 }
 
 module.exports = BacktestResultExporterForAutoBacktest;
