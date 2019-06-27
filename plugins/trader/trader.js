@@ -478,6 +478,7 @@ Trader.prototype.createOrder = function (side, amount, advice, id) {
 
       if (err) {
         log.error('Error while creating summary:', err);
+        _.remove(this.orders, ord => ord.id === order.id);
         return this.deferredEmit('tradeErrored', {
           id,
           adviceId: advice.id,
